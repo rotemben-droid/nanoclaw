@@ -10,6 +10,7 @@ import {
   TRIGGER_PATTERN,
 } from './config.js';
 import { startCredentialProxy } from './credential-proxy.js';
+import { startApi } from './api.js';
 import './channels/index.js';
 import {
   getChannelFactory,
@@ -634,6 +635,11 @@ async function main(): Promise<void> {
       writeGroupsSnapshot(gf, im, ag, rj),
   });
   queue.setProcessMessagesFn(processGroupMessages);
+  startApi((jid, text) => {
+    const channel = findChannel(channels, jid);
+    if (!channel) throw new Error(`No channel for JID: ${jid}`);
+    return channel.sendMessage(jid, text);
+  });
   recoverPendingMessages();
   startMessageLoop().catch((err) => {
     logger.fatal({ err }, 'Message loop crashed unexpectedly');
