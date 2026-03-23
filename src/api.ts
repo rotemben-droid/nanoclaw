@@ -17,7 +17,8 @@ export function startApi(
   sendMessage: (jid: string, text: string) => Promise<void>,
   moneypennyUrl?: string,
 ): void {
-  const mpUrl = moneypennyUrl || process.env.MONEYPENNY_URL || 'http://localhost:3010';
+  const mpUrl =
+    moneypennyUrl || process.env.MONEYPENNY_URL || 'http://localhost:3010';
   const secrets = readEnvFile(['NANOCLAW_API_KEY']);
   const apiKey = secrets.NANOCLAW_API_KEY;
 
@@ -46,7 +47,11 @@ export function startApi(
               to?: string;
               message?: string;
             };
-            const jid = data.jid || (data.to ? data.to.replace(/^\+/, '') + '@s.whatsapp.net' : undefined);
+            const jid =
+              data.jid ||
+              (data.to
+                ? data.to.replace(/^\+/, '') + '@s.whatsapp.net'
+                : undefined);
             const text = data.text || data.message;
             if (!jid || !text) {
               res.writeHead(400, { 'Content-Type': 'application/json' });
@@ -59,9 +64,7 @@ export function startApi(
           } catch (err) {
             logger.error({ err }, 'Error handling /send');
             res.writeHead(500, { 'Content-Type': 'application/json' });
-            res.end(
-              JSON.stringify({ error: (err as Error).message }),
-            );
+            res.end(JSON.stringify({ error: (err as Error).message }));
           }
         });
         return;

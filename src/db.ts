@@ -167,19 +167,30 @@ function createSchema(database: Database.Database): void {
   // Add aliases column to people if it doesn't exist (migration for existing DBs)
   try {
     database.exec(`ALTER TABLE people ADD COLUMN aliases TEXT DEFAULT '[]'`);
-  } catch { /* column already exists */ }
+  } catch {
+    /* column already exists */
+  }
 
   // Seed aliases for existing people who have none
   const aliasSeeds: Record<string, string> = {
     rotem: JSON.stringify(['husband', 'dad', 'father']),
-    miko: JSON.stringify(['michal', 'dr michal', 'dr. michal', 'mom', 'mother', 'wife']),
+    miko: JSON.stringify([
+      'michal',
+      'dr michal',
+      'dr. michal',
+      'mom',
+      'mother',
+      'wife',
+    ]),
     itay: JSON.stringify(['gandalf', 'mr gandalf']),
     danielle: JSON.stringify([]),
     noya: JSON.stringify([]),
   };
   for (const [id, aliases] of Object.entries(aliasSeeds)) {
     database
-      .prepare(`UPDATE people SET aliases = ? WHERE id = ? AND (aliases IS NULL OR aliases = '[]')`)
+      .prepare(
+        `UPDATE people SET aliases = ? WHERE id = ? AND (aliases IS NULL OR aliases = '[]')`,
+      )
       .run(aliases, id);
   }
 
@@ -213,52 +224,116 @@ function seedDefaults(): void {
   if (peopleCount === 0) {
     const people = [
       {
-        id: 'rotem', tenant_id: 'benisrael', name: 'Rotem', relation: 'Self',
-        emoji: '\u{1F464}', color: '#58a6ff', contact_tier: 6,
-        phone: '+19256995147', whatsapp: '+19256995147', email: 'rotemben@gmail.com',
-        telegram: 'tg:1449522448', preferred_channel: 'telegram', language: 'en',
-        quiet_hours_start: '23:00', quiet_hours_end: '07:00',
-        jarvis_personality: 'classic_butler', jarvis_personality_custom: '',
+        id: 'rotem',
+        tenant_id: 'benisrael',
+        name: 'Rotem',
+        relation: 'Self',
+        emoji: '\u{1F464}',
+        color: '#58a6ff',
+        contact_tier: 6,
+        phone: '+19256995147',
+        whatsapp: '+19256995147',
+        email: 'rotemben@gmail.com',
+        telegram: 'tg:1449522448',
+        preferred_channel: 'telegram',
+        language: 'en',
+        quiet_hours_start: '23:00',
+        quiet_hours_end: '07:00',
+        jarvis_personality: 'classic_butler',
+        jarvis_personality_custom: '',
         notes: 'Owner. Primary channel is Telegram tg:1449522448.',
         aliases: JSON.stringify(['husband', 'dad', 'father']),
       },
       {
-        id: 'miko', tenant_id: 'benisrael', name: 'Miko', relation: 'Spouse',
-        emoji: '\u{1F49A}', color: '#f778ba', contact_tier: 6,
-        phone: '+19253214959', whatsapp: '+19253214959', email: 'dr.michal@gmail.com',
-        telegram: '', preferred_channel: 'whatsapp', language: 'he',
-        quiet_hours_start: '22:00', quiet_hours_end: '07:00',
-        jarvis_personality: 'warm_friend', jarvis_personality_custom: '',
+        id: 'miko',
+        tenant_id: 'benisrael',
+        name: 'Miko',
+        relation: 'Spouse',
+        emoji: '\u{1F49A}',
+        color: '#f778ba',
+        contact_tier: 6,
+        phone: '+19253214959',
+        whatsapp: '+19253214959',
+        email: 'dr.michal@gmail.com',
+        telegram: '',
+        preferred_channel: 'whatsapp',
+        language: 'he',
+        quiet_hours_start: '22:00',
+        quiet_hours_end: '07:00',
+        jarvis_personality: 'warm_friend',
+        jarvis_personality_custom: '',
         notes: '',
-        aliases: JSON.stringify(['michal', 'dr michal', 'dr. michal', 'mom', 'mother', 'wife']),
+        aliases: JSON.stringify([
+          'michal',
+          'dr michal',
+          'dr. michal',
+          'mom',
+          'mother',
+          'wife',
+        ]),
       },
       {
-        id: 'itay', tenant_id: 'benisrael', name: 'Itay', relation: 'Son',
-        emoji: '\u{1F9D9}', color: '#a371f7', contact_tier: 6,
-        phone: '+19258779599', whatsapp: '+19258779599', email: '',
-        telegram: '', preferred_channel: 'whatsapp', language: 'he',
-        quiet_hours_start: '21:00', quiet_hours_end: '08:00',
-        jarvis_personality: 'storyteller', jarvis_personality_custom: '',
+        id: 'itay',
+        tenant_id: 'benisrael',
+        name: 'Itay',
+        relation: 'Son',
+        emoji: '\u{1F9D9}',
+        color: '#a371f7',
+        contact_tier: 6,
+        phone: '+19258779599',
+        whatsapp: '+19258779599',
+        email: '',
+        telegram: '',
+        preferred_channel: 'whatsapp',
+        language: 'he',
+        quiet_hours_start: '21:00',
+        quiet_hours_end: '08:00',
+        jarvis_personality: 'storyteller',
+        jarvis_personality_custom: '',
         notes: 'Nickname: Mr. Gandalf. Loves stories and adventure.',
         aliases: JSON.stringify(['gandalf', 'mr gandalf']),
       },
       {
-        id: 'danielle', tenant_id: 'benisrael', name: 'Danielle', relation: 'Daughter',
-        emoji: '\u{2728}', color: '#f0883e', contact_tier: 6,
-        phone: '+19252060778', whatsapp: '+19252060778', email: '',
-        telegram: '', preferred_channel: 'whatsapp', language: 'he',
-        quiet_hours_start: '22:00', quiet_hours_end: '08:00',
-        jarvis_personality: 'warm_friend', jarvis_personality_custom: '',
-        notes: '', aliases: JSON.stringify([]),
+        id: 'danielle',
+        tenant_id: 'benisrael',
+        name: 'Danielle',
+        relation: 'Daughter',
+        emoji: '\u{2728}',
+        color: '#f0883e',
+        contact_tier: 6,
+        phone: '+19252060778',
+        whatsapp: '+19252060778',
+        email: '',
+        telegram: '',
+        preferred_channel: 'whatsapp',
+        language: 'he',
+        quiet_hours_start: '22:00',
+        quiet_hours_end: '08:00',
+        jarvis_personality: 'warm_friend',
+        jarvis_personality_custom: '',
+        notes: '',
+        aliases: JSON.stringify([]),
       },
       {
-        id: 'noya', tenant_id: 'benisrael', name: 'Noya', relation: 'Daughter',
-        emoji: '\u{1F6AB}', color: '#8b949e', contact_tier: 0,
-        phone: '', whatsapp: '', email: '',
-        telegram: '', preferred_channel: 'none', language: 'he',
-        quiet_hours_start: '00:00', quiet_hours_end: '00:00',
-        jarvis_personality: 'warm_friend', jarvis_personality_custom: '',
-        notes: 'Does not like AI. Do not contact under any circumstances. Tier 0 enforced server-side.',
+        id: 'noya',
+        tenant_id: 'benisrael',
+        name: 'Noya',
+        relation: 'Daughter',
+        emoji: '\u{1F6AB}',
+        color: '#8b949e',
+        contact_tier: 0,
+        phone: '',
+        whatsapp: '',
+        email: '',
+        telegram: '',
+        preferred_channel: 'none',
+        language: 'he',
+        quiet_hours_start: '00:00',
+        quiet_hours_end: '00:00',
+        jarvis_personality: 'warm_friend',
+        jarvis_personality_custom: '',
+        notes:
+          'Does not like AI. Do not contact under any circumstances. Tier 0 enforced server-side.',
         aliases: JSON.stringify([]),
       },
     ];
@@ -273,11 +348,26 @@ function seedDefaults(): void {
     const insertAll = db.transaction((rows: typeof people) => {
       for (const p of rows) {
         insert.run(
-          p.id, p.tenant_id, p.name, p.relation, p.emoji, p.color, p.contact_tier,
-          p.phone, p.whatsapp, p.email, p.telegram, p.preferred_channel,
-          p.quiet_hours_start, p.quiet_hours_end, p.language,
-          p.jarvis_personality, p.jarvis_personality_custom, p.notes,
-          p.aliases, new Date().toISOString(),
+          p.id,
+          p.tenant_id,
+          p.name,
+          p.relation,
+          p.emoji,
+          p.color,
+          p.contact_tier,
+          p.phone,
+          p.whatsapp,
+          p.email,
+          p.telegram,
+          p.preferred_channel,
+          p.quiet_hours_start,
+          p.quiet_hours_end,
+          p.language,
+          p.jarvis_personality,
+          p.jarvis_personality_custom,
+          p.notes,
+          p.aliases,
+          new Date().toISOString(),
         );
       }
     });
@@ -292,7 +382,15 @@ function seedDefaults(): void {
     db.prepare(
       `INSERT INTO tenants (tenant_id, owner, jarvis_name, moneypenny_power, timezone, language, weather_location)
        VALUES (?, ?, ?, ?, ?, ?, ?)`,
-    ).run('benisrael', 'Rotem', 'Jarvis', 3, 'America/Los_Angeles', 'en', 'Pleasanton, CA');
+    ).run(
+      'benisrael',
+      'Rotem',
+      'Jarvis',
+      3,
+      'America/Los_Angeles',
+      'en',
+      'Pleasanton, CA',
+    );
     logger.info({ tenantId: 'benisrael' }, 'Seeded default tenant (benisrael)');
   }
 }
@@ -803,8 +901,11 @@ function rowToPerson(row: Person): PersonApi {
   return {
     ...rest,
     aliases: (() => {
-      try { return JSON.parse((rest.aliases as unknown as string) || '[]'); }
-      catch { return []; }
+      try {
+        return JSON.parse((rest.aliases as unknown as string) || '[]');
+      } catch {
+        return [];
+      }
     })(),
     quiet_hours: {
       start: quiet_hours_start || '22:00',

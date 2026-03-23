@@ -72,7 +72,9 @@ export class WhatsAppChannel implements Channel {
     });
     // Clean up old socket listeners before reconnecting to prevent stale handler leaks
     if (this.sock) {
-      (this.sock.ev as unknown as import("events").EventEmitter).removeAllListeners();
+      (
+        this.sock.ev as unknown as import('events').EventEmitter
+      ).removeAllListeners();
     }
     this.sock = makeWASocket({
       version,

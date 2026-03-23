@@ -1037,6 +1037,64 @@ export async function handlePortalRequest(
     return true;
   }
 
+  // ── GET /api/jobs/:id/log — last 10 runs for a job ────────
+  const jobLogMatch = p.match(/^\/api\/jobs\/([^/]+)\/log$/);
+  if (req.method === 'GET' && jobLogMatch) {
+    try {
+      const db = getDb();
+      const runs = db.prepare(`
+        SELECT id, task_id AS job_id, run_at, status, result AS result_preview, duration_ms
+        FROM task_run_logs WHERE task_id = ?
+        ORDER BY run_at DESC LIMIT 10
+      `).all(jobLogMatch[1]);
+      jsonResponse(res, runs);
+    } catch (e) {
+      jsonResponse(res, { error: String(e) }, 500);
+    }
+    return true;
+  }
+
+  // ── GET /api/jobs/history — 7-day run history for ALL jobs ─
+  if (req.method === 'GET' && p === '/api/jobs/history') {
+    try {
+      const db = getDb();
+      const days = parseInt(String(url.searchParams.get('days') || '7')) || 7;
+      const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+      const runs = db.prepare(`
+        SELECT task_id AS job_id, run_at, status
+        FROM task_run_logs WHERE run_at > ?
+        ORDER BY run_at DESC
+      `).all(since);
+      // Group by job_id
+      const byJob: Record<string, Array<{date: string; status: string}>> = {};
+      (runs as Array<{job_id: string; run_at: string; status: string}>).forEach((r) => {
+        if (!byJob[r.job_id]) byJob[r.job_id] = [];
+        byJob[r.job_id].push({ date: r.run_at.substring(0, 10), status: r.status });
+      });
+      jsonResponse(res, byJob);
+    } catch (e) {
+      jsonResponse(res, { error: String(e) }, 500);
+    }
+    return true;
+  }
+
+  // ── GET /api/status — is Jarvis currently running a job? ──
+  if (req.method === 'GET' && p === '/api/status') {
+    try {
+      const db = getDb();
+      const cutoff = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+      const running = db.prepare(`
+        SELECT id, id AS name FROM scheduled_tasks
+        WHERE status = 'running' AND created_at > ?
+        LIMIT 1
+      `).get(cutoff) as {id: string; name: string} | undefined;
+      jsonResponse(res, { running: !!running, current_job: running?.name || null });
+    } catch (e) {
+      jsonResponse(res, { running: false, current_job: null });
+    }
+    return true;
+  }
+
   // Route not matched
   return false;
 }
