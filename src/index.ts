@@ -58,7 +58,6 @@ import {
   loadSenderAllowlist,
   shouldDropMessage,
 } from './sender-allowlist.js';
-import { startApi } from './api.js';
 import { writeAllPersonalityContexts } from './portal.js';
 import { startSchedulerLoop } from './task-scheduler.js';
 import { Channel, NewMessage, RegisteredGroup } from './types.js';
@@ -649,11 +648,6 @@ async function main(): Promise<void> {
       writeGroupsSnapshot(gf, im, ag, rj),
   });
   queue.setProcessMessagesFn(processGroupMessages);
-  startApi((jid, text) => {
-    const channel = findChannel(channels, jid);
-    if (!channel) throw new Error(`No channel for JID: ${jid}`);
-    return channel.sendMessage(jid, text);
-  });
   recoverPendingMessages();
   startMessageLoop().catch((err) => {
     logger.fatal({ err }, 'Message loop crashed unexpectedly');
