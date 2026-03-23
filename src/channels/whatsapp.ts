@@ -70,6 +70,10 @@ export class WhatsAppChannel implements Channel {
       );
       return { version: undefined };
     });
+    // Clean up old socket listeners before reconnecting to prevent stale handler leaks
+    if (this.sock) {
+      this.sock.ev.removeAllListeners();
+    }
     this.sock = makeWASocket({
       version,
       auth: {
@@ -110,15 +114,19 @@ export class WhatsAppChannel implements Channel {
         );
 
         if (shouldReconnect) {
-          logger.info('Reconnecting...');
-          this.connectInternal().catch((err) => {
-            logger.error({ err }, 'Failed to reconnect, retrying in 5s');
-            setTimeout(() => {
-              this.connectInternal().catch((err2) => {
-                logger.error({ err: err2 }, 'Reconnection retry failed');
-              });
-            }, 5000);
-          });
+          // Baileys 515 (restartRequired) may have creds writes in flight — delay before reconnecting
+          const reconnectDelay = reason === DisconnectReason.restartRequired ? 1000 : 0;
+          logger.info({ reason, reconnectDelay }, 'Reconnecting...');
+          const doReconnect = () =>
+            this.connectInternal().catch((err) => {
+              logger.error({ err }, 'Failed to reconnect, retrying in 5s');
+              setTimeout(() => {
+                this.connectInternal().catch((err2) => {
+                  logger.error({ err: err2 }, 'Reconnection retry failed');
+                });
+              }, 5000);
+            });
+          if (reconnectDelay > 0) { setTimeout(doReconnect, reconnectDelay); } else { doReconnect(); }
         } else {
           logger.info('Logged out. Run /setup to re-authenticate.');
           process.exit(0);
