@@ -98,11 +98,16 @@ export interface Person {
   jarvis_personality: string;
   jarvis_personality_custom: string;
   notes: string;
+  aliases: string[];
   created_at: string;
 }
 
 /** API representation with nested quiet_hours (sent to/from clients). */
-export interface PersonApi extends Omit<Person, 'quiet_hours_start' | 'quiet_hours_end'> {
+export interface PersonApi extends Omit<
+  Person,
+  'quiet_hours_start' | 'quiet_hours_end'
+> {
+  aliases: string[];
   quiet_hours: { start: string; end: string };
 }
 

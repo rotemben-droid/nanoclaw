@@ -105,10 +105,7 @@ function buildPromptInjection(row: Person): string {
 
   let prompt = `--- PERSONALITY FOR ${row.name.toUpperCase()} ---\n`;
   prompt += presetText + '\n';
-  if (
-    row.jarvis_personality_custom &&
-    row.jarvis_personality_custom.trim()
-  ) {
+  if (row.jarvis_personality_custom && row.jarvis_personality_custom.trim()) {
     prompt += `\nAdditional tone instructions from the owner: ${row.jarvis_personality_custom.trim()}\n`;
   }
   prompt += `\nContext: You are talking to ${row.name} (${row.relation || 'family member'}).`;
@@ -138,7 +135,10 @@ export function writePersonalityContext(row: Person): void {
     );
     logger.info({ person: row.name }, 'Wrote personality-context.md');
   } catch (err) {
-    logger.error({ person: row.name, err }, 'Failed to write personality-context.md');
+    logger.error(
+      { person: row.name, err },
+      'Failed to write personality-context.md',
+    );
   }
 }
 
@@ -154,7 +154,10 @@ export function writeAllPersonalityContexts(): void {
       };
       writePersonalityContext(flat);
     }
-    logger.info({ count: people.length }, 'Wrote all personality context files');
+    logger.info(
+      { count: people.length },
+      'Wrote all personality context files',
+    );
   } catch (err) {
     logger.error({ err }, 'writeAllPersonalityContexts failed');
   }
@@ -173,7 +176,8 @@ export function generatePersonCLAUDE(person: Person): string {
     PRESET_DISPLAY_NAMES[person.jarvis_personality] ||
     person.jarvis_personality ||
     'Warm Friend';
-  const langLabel = LANGUAGE_LABELS[person.language] || person.language || 'English';
+  const langLabel =
+    LANGUAGE_LABELS[person.language] || person.language || 'English';
   const relationLower = (person.relation || 'family member').toLowerCase();
 
   // Build a capabilities section based on contact tier
@@ -199,20 +203,16 @@ export function generatePersonCLAUDE(person: Person): string {
     .map((p) => {
       const isSelf = p.id === person.id;
       const rel = isSelf ? 'self' : p.relation.toLowerCase();
-      const notes =
-        p.id === 'noya'
-          ? 'Do NOT contact'
-          : p.notes || '';
+      const notes = p.id === 'noya' ? 'Do NOT contact' : p.notes || '';
       const phone = p.phone || p.whatsapp || '\u2014';
       return `| ${p.name} | ${phone} | ${rel} | ${notes} |`;
     })
     .join('\n');
 
   // Default fallback preset name for session startup
-  const fallbackPreset =
-    PERSONALITY_PRESETS[person.jarvis_personality]
-      ? personalityLabel.replace(/[^\w\s]/g, '').trim()
-      : 'Warm Friend';
+  const fallbackPreset = PERSONALITY_PRESETS[person.jarvis_personality]
+    ? personalityLabel.replace(/[^\w\s]/g, '').trim()
+    : 'Warm Friend';
 
   return `# Jarvis
 
@@ -351,23 +351,33 @@ function describeRelation(person: Person, allPeople: PersonApi[]): string {
  * Called when POST /api/family adds a new person with a phone number.
  */
 export function registerNewPersonGroup(person: Person): void {
-  const personId = person.id || person.name.toLowerCase().replace(/[^a-z0-9]/g, '_');
+  const personId =
+    person.id || person.name.toLowerCase().replace(/[^a-z0-9]/g, '_');
   const folderName = `whatsapp_${personId}`;
 
   // Skip if blocked (tier 0) or no phone number
   if (person.contact_tier === 0) {
-    logger.info({ person: person.name }, 'Skipping group registration for blocked person');
+    logger.info(
+      { person: person.name },
+      'Skipping group registration for blocked person',
+    );
     return;
   }
   const phone = person.phone || person.whatsapp;
   if (!phone) {
-    logger.info({ person: person.name }, 'Skipping group registration: no phone number');
+    logger.info(
+      { person: person.name },
+      'Skipping group registration: no phone number',
+    );
     return;
   }
 
   // Validate folder name
   if (!isValidGroupFolder(folderName)) {
-    logger.warn({ folderName }, 'Generated folder name is invalid, skipping auto-registration');
+    logger.warn(
+      { folderName },
+      'Generated folder name is invalid, skipping auto-registration',
+    );
     return;
   }
 
@@ -379,7 +389,10 @@ export function registerNewPersonGroup(person: Person): void {
   // 2. Write personalized CLAUDE.md
   const claudeContent = generatePersonCLAUDE(person);
   fs.writeFileSync(path.join(groupPath, 'CLAUDE.md'), claudeContent, 'utf8');
-  logger.info({ person: person.name, folder: folderName }, 'Wrote CLAUDE.md for new person');
+  logger.info(
+    { person: person.name, folder: folderName },
+    'Wrote CLAUDE.md for new person',
+  );
 
   // 3. Derive WhatsApp JID from phone number
   const jid = phone.replace(/^\+/, '') + '@s.whatsapp.net';
@@ -415,10 +428,7 @@ export function registerNewPersonGroup(person: Person): void {
 
 /** Path to Moneypenny family.json — mounted volume from docker-compose. */
 function getMpFamilyPath(): string {
-  return (
-    process.env.MP_FAMILY_PATH ||
-    '/opt/homelab/moneypenny/family.json'
-  );
+  return process.env.MP_FAMILY_PATH || '/opt/homelab/moneypenny/family.json';
 }
 
 function readJson<T>(filePath: string, fallback: T): T {
@@ -433,10 +443,7 @@ function writeJson(filePath: string, data: unknown): void {
   fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf8');
 }
 
-function dualWriteToMoneypenny(
-  person: Person,
-  changedFields: string[],
-): void {
+function dualWriteToMoneypenny(person: Person, changedFields: string[]): void {
   const mpPath = getMpFamilyPath();
   const contactChanged = ['phone', 'whatsapp', 'email', 'name'].some((f) =>
     changedFields.includes(f),
@@ -447,7 +454,8 @@ function dualWriteToMoneypenny(
     const mpRaw = readJson<Record<string, unknown>[]>(mpPath, []);
     const mpArr: Record<string, unknown>[] = Array.isArray(mpRaw)
       ? (mpRaw as Record<string, unknown>[])
-      : ((mpRaw as unknown as { people?: Record<string, unknown>[] }).people || []);
+      : (mpRaw as unknown as { people?: Record<string, unknown>[] }).people ||
+        [];
     const lookupName = (person.name || '').toLowerCase();
     const mpEntry = mpArr.find(
       (m) =>
@@ -457,8 +465,12 @@ function dualWriteToMoneypenny(
     );
 
     if (mpEntry) {
-      if (changedFields.includes('phone') || changedFields.includes('whatsapp')) {
-        mpEntry.number = person.phone || person.whatsapp || mpEntry.number || '';
+      if (
+        changedFields.includes('phone') ||
+        changedFields.includes('whatsapp')
+      ) {
+        mpEntry.number =
+          person.phone || person.whatsapp || mpEntry.number || '';
       }
       if (changedFields.includes('email')) {
         mpEntry.email = person.email || null;
@@ -481,7 +493,10 @@ function dualWriteToMoneypenny(
       logger.info({ person: person.name }, 'Added to Moneypenny family.json');
     }
   } catch (err) {
-    logger.error({ err, person: person.name }, 'Moneypenny dual-write failed (non-fatal)');
+    logger.error(
+      { err, person: person.name },
+      'Moneypenny dual-write failed (non-fatal)',
+    );
   }
 }
 
@@ -558,7 +573,9 @@ function errorResponse(
   jsonResponse(res, { error: msg }, status);
 }
 
-function parseBody(req: http.IncomingMessage): Promise<Record<string, unknown>> {
+function parseBody(
+  req: http.IncomingMessage,
+): Promise<Record<string, unknown>> {
   return new Promise((resolve, reject) => {
     let body = '';
     req.on('data', (chunk: string) => (body += chunk));
@@ -575,7 +592,9 @@ function parseBody(req: http.IncomingMessage): Promise<Record<string, unknown>> 
 
 function computeNextRun(expr: string): string | null {
   try {
-    return CronExpressionParser.parse(expr, { tz: TIMEZONE }).next().toISOString();
+    return CronExpressionParser.parse(expr, { tz: TIMEZONE })
+      .next()
+      .toISOString();
   } catch {
     return null;
   }
@@ -815,7 +834,9 @@ export async function handlePortalRequest(
       writePersonalityContext(updated);
 
       if (personalityChanged) {
-        const folderName = NAME_TO_GROUP[updated.name.toLowerCase()] || NAME_TO_GROUP[updated.id];
+        const folderName =
+          NAME_TO_GROUP[updated.name.toLowerCase()] ||
+          NAME_TO_GROUP[updated.id];
         if (folderName) {
           // Clear session so next message starts fresh
           deleteSession(folderName);
@@ -907,9 +928,7 @@ export async function handlePortalRequest(
   if (req.method === 'GET' && p === '/api/tenant') {
     const tenant = getTenant('benisrael');
     if (!tenant) {
-      // Fallback: read from JSON
-      const tenantPath = path.join(process.cwd(), 'config', 'tenant.json');
-      jsonResponse(res, readJson(tenantPath, {}));
+      errorResponse(res, 'Tenant not found', 404);
     } else {
       jsonResponse(res, tenant);
     }
@@ -925,20 +944,6 @@ export async function handlePortalRequest(
         errorResponse(res, 'No valid fields to update', 400);
         return true;
       }
-      // Sync weather_location back to tenant.json
-      if (body.weather_location !== undefined) {
-        const tenantPath = path.join(process.cwd(), 'config', 'tenant.json');
-        try {
-          const tj = readJson<Record<string, unknown>>(tenantPath, {});
-          tj.weather_location = body.weather_location;
-          fs.writeFileSync(
-            tenantPath,
-            JSON.stringify(tj, null, 2) + '\n',
-          );
-        } catch {
-          // non-fatal
-        }
-      }
       jsonResponse(res, updated);
     } catch (e) {
       errorResponse(res, (e as Error).message);
@@ -950,26 +955,28 @@ export async function handlePortalRequest(
   if (req.method === 'GET' && p === '/api/health/moneypenny') {
     try {
       const mpUrl = new URL(moneypennyUrl);
-      const result = await new Promise<{ status: number }>((resolve, reject) => {
-        const r = http.request(
-          {
-            hostname: mpUrl.hostname,
-            port: parseInt(mpUrl.port) || 80,
-            path: '/health',
-            method: 'GET',
-          },
-          (res2) => {
-            resolve({ status: res2.statusCode || 500 });
-            res2.resume();
-          },
-        );
-        r.on('error', reject);
-        r.setTimeout(3000, () => {
-          r.destroy();
-          reject(new Error('timeout'));
-        });
-        r.end();
-      });
+      const result = await new Promise<{ status: number }>(
+        (resolve, reject) => {
+          const r = http.request(
+            {
+              hostname: mpUrl.hostname,
+              port: parseInt(mpUrl.port) || 80,
+              path: '/health',
+              method: 'GET',
+            },
+            (res2) => {
+              resolve({ status: res2.statusCode || 500 });
+              res2.resume();
+            },
+          );
+          r.on('error', reject);
+          r.setTimeout(3000, () => {
+            r.destroy();
+            reject(new Error('timeout'));
+          });
+          r.end();
+        },
+      );
       jsonResponse(res, { online: result.status < 500, status: result.status });
     } catch {
       jsonResponse(res, { online: false });

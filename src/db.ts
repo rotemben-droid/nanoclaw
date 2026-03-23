@@ -105,6 +105,7 @@ function createSchema(database: Database.Database): void {
       jarvis_personality TEXT DEFAULT 'classic_butler',
       jarvis_personality_custom TEXT DEFAULT '',
       notes TEXT DEFAULT '',
+      aliases TEXT DEFAULT '[]',
       created_at TEXT DEFAULT (datetime('now'))
     );
 
@@ -163,6 +164,25 @@ function createSchema(database: Database.Database): void {
     /* column already exists */
   }
 
+  // Add aliases column to people if it doesn't exist (migration for existing DBs)
+  try {
+    database.exec(`ALTER TABLE people ADD COLUMN aliases TEXT DEFAULT '[]'`);
+  } catch { /* column already exists */ }
+
+  // Seed aliases for existing people who have none
+  const aliasSeeds: Record<string, string> = {
+    rotem: JSON.stringify(['husband', 'dad', 'father']),
+    miko: JSON.stringify(['michal', 'dr michal', 'dr. michal', 'mom', 'mother', 'wife']),
+    itay: JSON.stringify(['gandalf', 'mr gandalf']),
+    danielle: JSON.stringify([]),
+    noya: JSON.stringify([]),
+  };
+  for (const [id, aliases] of Object.entries(aliasSeeds)) {
+    database
+      .prepare(`UPDATE people SET aliases = ? WHERE id = ? AND (aliases IS NULL OR aliases = '[]')`)
+      .run(aliases, id);
+  }
+
   // Add channel and is_group columns if they don't exist (migration for existing DBs)
   try {
     database.exec(`ALTER TABLE chats ADD COLUMN channel TEXT`);
@@ -185,96 +205,95 @@ function createSchema(database: Database.Database): void {
   }
 }
 
-function seedFromJson(): void {
-  // Seed people from config/family.json if table is empty
+function seedDefaults(): void {
   const peopleCount = (
     db.prepare('SELECT COUNT(*) AS cnt FROM people').get() as { cnt: number }
   ).cnt;
+
   if (peopleCount === 0) {
-    const familyPath = path.join(process.cwd(), 'config', 'family.json');
-    if (fs.existsSync(familyPath)) {
-      try {
-        const familyData = JSON.parse(fs.readFileSync(familyPath, 'utf-8'));
-        const people: Record<string, unknown>[] = familyData.people || [];
-        if (people.length > 0) {
-          const insert = db.prepare(`
-            INSERT INTO people (id, tenant_id, name, relation, emoji, color, contact_tier,
-              phone, whatsapp, email, telegram, preferred_channel,
-              quiet_hours_start, quiet_hours_end, language,
-              jarvis_personality, jarvis_personality_custom, notes, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-          `);
-          const insertMany = db.transaction(
-            (rows: Record<string, unknown>[]) => {
-              for (const p of rows) {
-                const qh = (p.quiet_hours || {}) as Record<string, string>;
-                insert.run(
-                  p.id,
-                  p.tenant_id || familyData.tenant_id || 'benisrael',
-                  p.name || '',
-                  p.relation || '',
-                  p.emoji || '',
-                  p.color || '#58a6ff',
-                  p.contact_tier ?? 6,
-                  p.phone || '',
-                  p.whatsapp || '',
-                  p.email || '',
-                  p.telegram || '',
-                  p.preferred_channel || 'whatsapp',
-                  qh.start || '22:00',
-                  qh.end || '07:00',
-                  p.language || 'en',
-                  p.jarvis_personality || 'classic_butler',
-                  p.jarvis_personality_custom || '',
-                  p.notes || '',
-                  p.created_at || new Date().toISOString(),
-                );
-              }
-            },
-          );
-          insertMany(people);
-          logger.info(
-            { count: people.length },
-            'Seeded people from family.json',
-          );
-        }
-      } catch (err) {
-        logger.error({ err }, 'Failed to seed people from family.json');
+    const people = [
+      {
+        id: 'rotem', tenant_id: 'benisrael', name: 'Rotem', relation: 'Self',
+        emoji: '\u{1F464}', color: '#58a6ff', contact_tier: 6,
+        phone: '+19256995147', whatsapp: '+19256995147', email: 'rotemben@gmail.com',
+        telegram: 'tg:1449522448', preferred_channel: 'telegram', language: 'en',
+        quiet_hours_start: '23:00', quiet_hours_end: '07:00',
+        jarvis_personality: 'classic_butler', jarvis_personality_custom: '',
+        notes: 'Owner. Primary channel is Telegram tg:1449522448.',
+        aliases: JSON.stringify(['husband', 'dad', 'father']),
+      },
+      {
+        id: 'miko', tenant_id: 'benisrael', name: 'Miko', relation: 'Spouse',
+        emoji: '\u{1F49A}', color: '#f778ba', contact_tier: 6,
+        phone: '+19253214959', whatsapp: '+19253214959', email: 'dr.michal@gmail.com',
+        telegram: '', preferred_channel: 'whatsapp', language: 'he',
+        quiet_hours_start: '22:00', quiet_hours_end: '07:00',
+        jarvis_personality: 'warm_friend', jarvis_personality_custom: '',
+        notes: '',
+        aliases: JSON.stringify(['michal', 'dr michal', 'dr. michal', 'mom', 'mother', 'wife']),
+      },
+      {
+        id: 'itay', tenant_id: 'benisrael', name: 'Itay', relation: 'Son',
+        emoji: '\u{1F9D9}', color: '#a371f7', contact_tier: 6,
+        phone: '+19258779599', whatsapp: '+19258779599', email: '',
+        telegram: '', preferred_channel: 'whatsapp', language: 'he',
+        quiet_hours_start: '21:00', quiet_hours_end: '08:00',
+        jarvis_personality: 'storyteller', jarvis_personality_custom: '',
+        notes: 'Nickname: Mr. Gandalf. Loves stories and adventure.',
+        aliases: JSON.stringify(['gandalf', 'mr gandalf']),
+      },
+      {
+        id: 'danielle', tenant_id: 'benisrael', name: 'Danielle', relation: 'Daughter',
+        emoji: '\u{2728}', color: '#f0883e', contact_tier: 6,
+        phone: '+19252060778', whatsapp: '+19252060778', email: '',
+        telegram: '', preferred_channel: 'whatsapp', language: 'he',
+        quiet_hours_start: '22:00', quiet_hours_end: '08:00',
+        jarvis_personality: 'warm_friend', jarvis_personality_custom: '',
+        notes: '', aliases: JSON.stringify([]),
+      },
+      {
+        id: 'noya', tenant_id: 'benisrael', name: 'Noya', relation: 'Daughter',
+        emoji: '\u{1F6AB}', color: '#8b949e', contact_tier: 0,
+        phone: '', whatsapp: '', email: '',
+        telegram: '', preferred_channel: 'none', language: 'he',
+        quiet_hours_start: '00:00', quiet_hours_end: '00:00',
+        jarvis_personality: 'warm_friend', jarvis_personality_custom: '',
+        notes: 'Does not like AI. Do not contact under any circumstances. Tier 0 enforced server-side.',
+        aliases: JSON.stringify([]),
+      },
+    ];
+
+    const insert = db.prepare(
+      `INSERT INTO people (id, tenant_id, name, relation, emoji, color, contact_tier,
+         phone, whatsapp, email, telegram, preferred_channel,
+         quiet_hours_start, quiet_hours_end, language,
+         jarvis_personality, jarvis_personality_custom, notes, aliases, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    );
+    const insertAll = db.transaction((rows: typeof people) => {
+      for (const p of rows) {
+        insert.run(
+          p.id, p.tenant_id, p.name, p.relation, p.emoji, p.color, p.contact_tier,
+          p.phone, p.whatsapp, p.email, p.telegram, p.preferred_channel,
+          p.quiet_hours_start, p.quiet_hours_end, p.language,
+          p.jarvis_personality, p.jarvis_personality_custom, p.notes,
+          p.aliases, new Date().toISOString(),
+        );
       }
-    }
+    });
+    insertAll(people);
+    logger.info({ count: people.length }, 'Seeded default family (benisrael)');
   }
 
-  // Seed tenants from config/tenant.json if table is empty
   const tenantCount = (
     db.prepare('SELECT COUNT(*) AS cnt FROM tenants').get() as { cnt: number }
   ).cnt;
   if (tenantCount === 0) {
-    const tenantPath = path.join(process.cwd(), 'config', 'tenant.json');
-    if (fs.existsSync(tenantPath)) {
-      try {
-        const tenantData = JSON.parse(fs.readFileSync(tenantPath, 'utf-8'));
-        if (tenantData.tenant_id) {
-          db.prepare(
-            `INSERT INTO tenants (tenant_id, owner, jarvis_name, moneypenny_power, timezone, language, weather_location)
-             VALUES (?, ?, ?, ?, ?, ?, ?)`,
-          ).run(
-            tenantData.tenant_id,
-            tenantData.owner || 'Rotem',
-            tenantData.jarvis_name || 'Jarvis',
-            tenantData.moneypenny_power ?? 3,
-            tenantData.timezone || 'America/Los_Angeles',
-            tenantData.language || 'en',
-            tenantData.weather_location || 'Los Altos Hills, CA',
-          );
-          logger.info(
-            { tenantId: tenantData.tenant_id },
-            'Seeded tenant from tenant.json',
-          );
-        }
-      } catch (err) {
-        logger.error({ err }, 'Failed to seed tenant from tenant.json');
-      }
-    }
+    db.prepare(
+      `INSERT INTO tenants (tenant_id, owner, jarvis_name, moneypenny_power, timezone, language, weather_location)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    ).run('benisrael', 'Rotem', 'Jarvis', 3, 'America/Los_Angeles', 'en', 'Pleasanton, CA');
+    logger.info({ tenantId: 'benisrael' }, 'Seeded default tenant (benisrael)');
   }
 }
 
@@ -284,7 +303,7 @@ export function initDatabase(): void {
 
   db = new Database(dbPath);
   createSchema(db);
-  seedFromJson();
+  seedDefaults();
 
   // Migrate from JSON files if they exist
   migrateJsonState();
@@ -783,6 +802,10 @@ function rowToPerson(row: Person): PersonApi {
   const { quiet_hours_start, quiet_hours_end, ...rest } = row;
   return {
     ...rest,
+    aliases: (() => {
+      try { return JSON.parse((rest.aliases as unknown as string) || '[]'); }
+      catch { return []; }
+    })(),
     quiet_hours: {
       start: quiet_hours_start || '22:00',
       end: quiet_hours_end || '07:00',
@@ -810,9 +833,7 @@ export function getPersonByName(name: string): Person | undefined {
     .get(name) as Person | undefined;
 }
 
-export function createPerson(
-  data: Record<string, unknown>,
-): PersonApi {
+export function createPerson(data: Record<string, unknown>): PersonApi {
   const flat = flattenQuietHours(data);
   const id =
     (flat.id as string) ||
@@ -823,8 +844,8 @@ export function createPerson(
     `INSERT INTO people (id, tenant_id, name, relation, emoji, color, contact_tier,
        phone, whatsapp, email, telegram, preferred_channel,
        quiet_hours_start, quiet_hours_end, language,
-       jarvis_personality, jarvis_personality_custom, notes, created_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       jarvis_personality, jarvis_personality_custom, notes, aliases, created_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
   ).run(
     id,
     tid,
@@ -844,10 +865,13 @@ export function createPerson(
     flat.jarvis_personality || 'classic_butler',
     flat.jarvis_personality_custom || '',
     flat.notes || '',
+    JSON.stringify(Array.isArray(flat.aliases) ? flat.aliases : []),
     new Date().toISOString(),
   );
 
-  const inserted = db.prepare('SELECT * FROM people WHERE id = ?').get(id) as Person;
+  const inserted = db
+    .prepare('SELECT * FROM people WHERE id = ?')
+    .get(id) as Person;
   return rowToPerson(inserted);
 }
 
@@ -860,10 +884,24 @@ export function updatePerson(
 
   const flat = flattenQuietHours(updates);
   const allowedCols = [
-    'name', 'relation', 'emoji', 'color', 'contact_tier',
-    'phone', 'whatsapp', 'email', 'telegram', 'preferred_channel',
-    'quiet_hours_start', 'quiet_hours_end', 'language',
-    'jarvis_personality', 'jarvis_personality_custom', 'notes', 'tenant_id',
+    'name',
+    'relation',
+    'emoji',
+    'color',
+    'contact_tier',
+    'phone',
+    'whatsapp',
+    'email',
+    'telegram',
+    'preferred_channel',
+    'quiet_hours_start',
+    'quiet_hours_end',
+    'language',
+    'jarvis_personality',
+    'jarvis_personality_custom',
+    'notes',
+    'aliases',
+    'tenant_id',
   ];
   const sets: string[] = [];
   const vals: unknown[] = [];
@@ -872,7 +910,11 @@ export function updatePerson(
   for (const col of allowedCols) {
     if (flat[col] !== undefined) {
       sets.push(`${col} = ?`);
-      vals.push(flat[col]);
+      if (col === 'aliases') {
+        vals.push(JSON.stringify(Array.isArray(flat[col]) ? flat[col] : []));
+      } else {
+        vals.push(flat[col]);
+      }
       changedFields.push(col);
     }
   }
@@ -884,7 +926,9 @@ export function updatePerson(
     );
   }
 
-  const updated = db.prepare('SELECT * FROM people WHERE id = ?').get(id) as Person;
+  const updated = db
+    .prepare('SELECT * FROM people WHERE id = ?')
+    .get(id) as Person;
   return { person: rowToPerson(updated), changedFields };
 }
 
@@ -895,9 +939,9 @@ export function deletePerson(id: string): void {
 // --- Tenant CRUD ---
 
 export function getTenant(tenantId: string): Tenant | undefined {
-  return db.prepare('SELECT * FROM tenants WHERE tenant_id = ?').get(tenantId) as
-    | Tenant
-    | undefined;
+  return db
+    .prepare('SELECT * FROM tenants WHERE tenant_id = ?')
+    .get(tenantId) as Tenant | undefined;
 }
 
 export function updateTenant(
@@ -905,16 +949,22 @@ export function updateTenant(
   updates: Record<string, unknown>,
 ): Tenant | undefined {
   const allowed = [
-    'owner', 'jarvis_name', 'moneypenny_power', 'timezone', 'language', 'weather_location',
+    'owner',
+    'jarvis_name',
+    'moneypenny_power',
+    'timezone',
+    'language',
+    'weather_location',
   ];
   const fields = Object.keys(updates).filter((k) => allowed.includes(k));
   if (fields.length === 0) return undefined;
 
   const setClauses = fields.map((f) => `${f} = ?`).join(', ');
   const values = fields.map((f) => updates[f]);
-  db.prepare(
-    `UPDATE tenants SET ${setClauses} WHERE tenant_id = ?`,
-  ).run(...values, tenantId);
+  db.prepare(`UPDATE tenants SET ${setClauses} WHERE tenant_id = ?`).run(
+    ...values,
+    tenantId,
+  );
 
   return getTenant(tenantId);
 }
