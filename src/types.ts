@@ -77,6 +77,45 @@ export interface TaskRunLog {
   error: string | null;
 }
 
+// --- Person / Tenant (Portal) ---
+
+export interface Person {
+  id: string;
+  tenant_id: string;
+  name: string;
+  relation: string;
+  emoji: string;
+  color: string;
+  contact_tier: number;
+  phone: string;
+  whatsapp: string;
+  email: string;
+  telegram: string;
+  preferred_channel: string;
+  quiet_hours_start: string;
+  quiet_hours_end: string;
+  language: string;
+  jarvis_personality: string;
+  jarvis_personality_custom: string;
+  notes: string;
+  created_at: string;
+}
+
+/** API representation with nested quiet_hours (sent to/from clients). */
+export interface PersonApi extends Omit<Person, 'quiet_hours_start' | 'quiet_hours_end'> {
+  quiet_hours: { start: string; end: string };
+}
+
+export interface Tenant {
+  tenant_id: string;
+  owner: string;
+  jarvis_name: string;
+  moneypenny_power: number;
+  timezone: string;
+  language: string;
+  weather_location: string;
+}
+
 // --- Channel abstraction ---
 
 export interface Channel {

@@ -58,6 +58,8 @@ import {
   loadSenderAllowlist,
   shouldDropMessage,
 } from './sender-allowlist.js';
+import { startApi } from './api.js';
+import { writeAllPersonalityContexts } from './portal.js';
 import { startSchedulerLoop } from './task-scheduler.js';
 import { Channel, NewMessage, RegisteredGroup } from './types.js';
 import { logger } from './logger.js';
@@ -475,6 +477,10 @@ async function main(): Promise<void> {
   ensureContainerSystemRunning();
   initDatabase();
   logger.info('Database initialized');
+
+  // Write personality-context.md files for all known people on startup
+  writeAllPersonalityContexts();
+
   loadState();
   restoreRemoteControl();
 
@@ -597,6 +603,14 @@ async function main(): Promise<void> {
     logger.fatal('No channels connected');
     process.exit(1);
   }
+
+  // Start API server (portal + /send endpoint)
+  const moneypennyUrl = process.env.MONEYPENNY_URL || 'http://localhost:3010';
+  startApi((jid, text) => {
+    const channel = findChannel(channels, jid);
+    if (!channel) throw new Error(`No channel for JID: ${jid}`);
+    return channel.sendMessage(jid, text);
+  }, moneypennyUrl);
 
   // Start subsystems (independently of connection handler)
   startSchedulerLoop({

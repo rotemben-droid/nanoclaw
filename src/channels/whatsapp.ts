@@ -72,7 +72,7 @@ export class WhatsAppChannel implements Channel {
     });
     // Clean up old socket listeners before reconnecting to prevent stale handler leaks
     if (this.sock) {
-      this.sock.ev.removeAllListeners();
+      (this.sock.ev as unknown as import("events").EventEmitter).removeAllListeners();
     }
     this.sock = makeWASocket({
       version,
@@ -115,7 +115,8 @@ export class WhatsAppChannel implements Channel {
 
         if (shouldReconnect) {
           // Baileys 515 (restartRequired) may have creds writes in flight — delay before reconnecting
-          const reconnectDelay = reason === DisconnectReason.restartRequired ? 1000 : 0;
+          const reconnectDelay =
+            reason === DisconnectReason.restartRequired ? 1000 : 0;
           logger.info({ reason, reconnectDelay }, 'Reconnecting...');
           const doReconnect = () =>
             this.connectInternal().catch((err) => {
@@ -126,7 +127,11 @@ export class WhatsAppChannel implements Channel {
                 });
               }, 5000);
             });
-          if (reconnectDelay > 0) { setTimeout(doReconnect, reconnectDelay); } else { doReconnect(); }
+          if (reconnectDelay > 0) {
+            setTimeout(doReconnect, reconnectDelay);
+          } else {
+            doReconnect();
+          }
         } else {
           logger.info('Logged out. Run /setup to re-authenticate.');
           process.exit(0);

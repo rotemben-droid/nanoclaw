@@ -7,9 +7,12 @@ import { isValidGroupFolder } from './group-folder.js';
 import { logger } from './logger.js';
 import {
   NewMessage,
+  Person,
+  PersonApi,
   RegisteredGroup,
   ScheduledTask,
   TaskRunLog,
+  Tenant,
 } from './types.js';
 
 let db: Database.Database;
@@ -82,6 +85,38 @@ function createSchema(database: Database.Database): void {
       container_config TEXT,
       requires_trigger INTEGER DEFAULT 1
     );
+
+    CREATE TABLE IF NOT EXISTS people (
+      id TEXT PRIMARY KEY,
+      tenant_id TEXT NOT NULL DEFAULT 'benisrael',
+      name TEXT NOT NULL,
+      relation TEXT DEFAULT '',
+      emoji TEXT DEFAULT '',
+      color TEXT DEFAULT '#58a6ff',
+      contact_tier INTEGER DEFAULT 6,
+      phone TEXT DEFAULT '',
+      whatsapp TEXT DEFAULT '',
+      email TEXT DEFAULT '',
+      telegram TEXT DEFAULT '',
+      preferred_channel TEXT DEFAULT 'whatsapp',
+      quiet_hours_start TEXT DEFAULT '22:00',
+      quiet_hours_end TEXT DEFAULT '07:00',
+      language TEXT DEFAULT 'en',
+      jarvis_personality TEXT DEFAULT 'classic_butler',
+      jarvis_personality_custom TEXT DEFAULT '',
+      notes TEXT DEFAULT '',
+      created_at TEXT DEFAULT (datetime('now'))
+    );
+
+    CREATE TABLE IF NOT EXISTS tenants (
+      tenant_id TEXT PRIMARY KEY,
+      owner TEXT NOT NULL DEFAULT 'Rotem',
+      jarvis_name TEXT DEFAULT 'Jarvis',
+      moneypenny_power INTEGER DEFAULT 3,
+      timezone TEXT DEFAULT 'America/Los_Angeles',
+      language TEXT DEFAULT 'en',
+      weather_location TEXT DEFAULT 'Los Altos Hills, CA'
+    );
   `);
 
   // Add context_mode column if it doesn't exist (migration for existing DBs)
@@ -119,6 +154,15 @@ function createSchema(database: Database.Database): void {
     /* column already exists */
   }
 
+  // Add weather_location column to tenants if it doesn't exist (migration for existing DBs)
+  try {
+    database.exec(
+      `ALTER TABLE tenants ADD COLUMN weather_location TEXT DEFAULT 'Los Altos Hills, CA'`,
+    );
+  } catch {
+    /* column already exists */
+  }
+
   // Add channel and is_group columns if they don't exist (migration for existing DBs)
   try {
     database.exec(`ALTER TABLE chats ADD COLUMN channel TEXT`);
@@ -141,15 +185,114 @@ function createSchema(database: Database.Database): void {
   }
 }
 
+function seedFromJson(): void {
+  // Seed people from config/family.json if table is empty
+  const peopleCount = (
+    db.prepare('SELECT COUNT(*) AS cnt FROM people').get() as { cnt: number }
+  ).cnt;
+  if (peopleCount === 0) {
+    const familyPath = path.join(process.cwd(), 'config', 'family.json');
+    if (fs.existsSync(familyPath)) {
+      try {
+        const familyData = JSON.parse(fs.readFileSync(familyPath, 'utf-8'));
+        const people: Record<string, unknown>[] = familyData.people || [];
+        if (people.length > 0) {
+          const insert = db.prepare(`
+            INSERT INTO people (id, tenant_id, name, relation, emoji, color, contact_tier,
+              phone, whatsapp, email, telegram, preferred_channel,
+              quiet_hours_start, quiet_hours_end, language,
+              jarvis_personality, jarvis_personality_custom, notes, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          `);
+          const insertMany = db.transaction(
+            (rows: Record<string, unknown>[]) => {
+              for (const p of rows) {
+                const qh = (p.quiet_hours || {}) as Record<string, string>;
+                insert.run(
+                  p.id,
+                  p.tenant_id || familyData.tenant_id || 'benisrael',
+                  p.name || '',
+                  p.relation || '',
+                  p.emoji || '',
+                  p.color || '#58a6ff',
+                  p.contact_tier ?? 6,
+                  p.phone || '',
+                  p.whatsapp || '',
+                  p.email || '',
+                  p.telegram || '',
+                  p.preferred_channel || 'whatsapp',
+                  qh.start || '22:00',
+                  qh.end || '07:00',
+                  p.language || 'en',
+                  p.jarvis_personality || 'classic_butler',
+                  p.jarvis_personality_custom || '',
+                  p.notes || '',
+                  p.created_at || new Date().toISOString(),
+                );
+              }
+            },
+          );
+          insertMany(people);
+          logger.info(
+            { count: people.length },
+            'Seeded people from family.json',
+          );
+        }
+      } catch (err) {
+        logger.error({ err }, 'Failed to seed people from family.json');
+      }
+    }
+  }
+
+  // Seed tenants from config/tenant.json if table is empty
+  const tenantCount = (
+    db.prepare('SELECT COUNT(*) AS cnt FROM tenants').get() as { cnt: number }
+  ).cnt;
+  if (tenantCount === 0) {
+    const tenantPath = path.join(process.cwd(), 'config', 'tenant.json');
+    if (fs.existsSync(tenantPath)) {
+      try {
+        const tenantData = JSON.parse(fs.readFileSync(tenantPath, 'utf-8'));
+        if (tenantData.tenant_id) {
+          db.prepare(
+            `INSERT INTO tenants (tenant_id, owner, jarvis_name, moneypenny_power, timezone, language, weather_location)
+             VALUES (?, ?, ?, ?, ?, ?, ?)`,
+          ).run(
+            tenantData.tenant_id,
+            tenantData.owner || 'Rotem',
+            tenantData.jarvis_name || 'Jarvis',
+            tenantData.moneypenny_power ?? 3,
+            tenantData.timezone || 'America/Los_Angeles',
+            tenantData.language || 'en',
+            tenantData.weather_location || 'Los Altos Hills, CA',
+          );
+          logger.info(
+            { tenantId: tenantData.tenant_id },
+            'Seeded tenant from tenant.json',
+          );
+        }
+      } catch (err) {
+        logger.error({ err }, 'Failed to seed tenant from tenant.json');
+      }
+    }
+  }
+}
+
 export function initDatabase(): void {
   const dbPath = path.join(STORE_DIR, 'messages.db');
   fs.mkdirSync(path.dirname(dbPath), { recursive: true });
 
   db = new Database(dbPath);
   createSchema(db);
+  seedFromJson();
 
   // Migrate from JSON files if they exist
   migrateJsonState();
+}
+
+/** Return the raw DB instance. Use sparingly for queries not covered by helpers. */
+export function getDb(): Database.Database {
+  return db;
 }
 
 /** @internal - for tests only. Creates a fresh in-memory database. */
@@ -632,6 +775,169 @@ export function getAllRegisteredGroups(): Record<string, RegisteredGroup> {
     };
   }
   return result;
+}
+
+// --- People CRUD ---
+
+function rowToPerson(row: Person): PersonApi {
+  const { quiet_hours_start, quiet_hours_end, ...rest } = row;
+  return {
+    ...rest,
+    quiet_hours: {
+      start: quiet_hours_start || '22:00',
+      end: quiet_hours_end || '07:00',
+    },
+  };
+}
+
+export function getAllPeople(tenantId?: string): PersonApi[] {
+  const tid = tenantId || 'benisrael';
+  const rows = db
+    .prepare('SELECT * FROM people WHERE tenant_id = ? ORDER BY rowid')
+    .all(tid) as Person[];
+  return rows.map(rowToPerson);
+}
+
+export function getPersonById(id: string): Person | undefined {
+  return db.prepare('SELECT * FROM people WHERE id = ?').get(id) as
+    | Person
+    | undefined;
+}
+
+export function getPersonByName(name: string): Person | undefined {
+  return db
+    .prepare('SELECT * FROM people WHERE LOWER(name) = LOWER(?)')
+    .get(name) as Person | undefined;
+}
+
+export function createPerson(
+  data: Record<string, unknown>,
+): PersonApi {
+  const flat = flattenQuietHours(data);
+  const id =
+    (flat.id as string) ||
+    (flat.name as string).toLowerCase().replace(/[^a-z0-9]/g, '_');
+  const tid = (flat.tenant_id as string) || 'benisrael';
+
+  db.prepare(
+    `INSERT INTO people (id, tenant_id, name, relation, emoji, color, contact_tier,
+       phone, whatsapp, email, telegram, preferred_channel,
+       quiet_hours_start, quiet_hours_end, language,
+       jarvis_personality, jarvis_personality_custom, notes, created_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+  ).run(
+    id,
+    tid,
+    flat.name || '',
+    flat.relation || '',
+    flat.emoji || '',
+    flat.color || '#58a6ff',
+    flat.contact_tier ?? 6,
+    flat.phone || '',
+    flat.whatsapp || '',
+    flat.email || '',
+    flat.telegram || '',
+    flat.preferred_channel || 'whatsapp',
+    flat.quiet_hours_start || '22:00',
+    flat.quiet_hours_end || '07:00',
+    flat.language || 'en',
+    flat.jarvis_personality || 'classic_butler',
+    flat.jarvis_personality_custom || '',
+    flat.notes || '',
+    new Date().toISOString(),
+  );
+
+  const inserted = db.prepare('SELECT * FROM people WHERE id = ?').get(id) as Person;
+  return rowToPerson(inserted);
+}
+
+export function updatePerson(
+  id: string,
+  updates: Record<string, unknown>,
+): { person: PersonApi; changedFields: string[] } | undefined {
+  const existing = getPersonById(id);
+  if (!existing) return undefined;
+
+  const flat = flattenQuietHours(updates);
+  const allowedCols = [
+    'name', 'relation', 'emoji', 'color', 'contact_tier',
+    'phone', 'whatsapp', 'email', 'telegram', 'preferred_channel',
+    'quiet_hours_start', 'quiet_hours_end', 'language',
+    'jarvis_personality', 'jarvis_personality_custom', 'notes', 'tenant_id',
+  ];
+  const sets: string[] = [];
+  const vals: unknown[] = [];
+  const changedFields: string[] = [];
+
+  for (const col of allowedCols) {
+    if (flat[col] !== undefined) {
+      sets.push(`${col} = ?`);
+      vals.push(flat[col]);
+      changedFields.push(col);
+    }
+  }
+
+  if (sets.length > 0) {
+    vals.push(id);
+    db.prepare(`UPDATE people SET ${sets.join(', ')} WHERE id = ?`).run(
+      ...vals,
+    );
+  }
+
+  const updated = db.prepare('SELECT * FROM people WHERE id = ?').get(id) as Person;
+  return { person: rowToPerson(updated), changedFields };
+}
+
+export function deletePerson(id: string): void {
+  db.prepare('DELETE FROM people WHERE id = ?').run(id);
+}
+
+// --- Tenant CRUD ---
+
+export function getTenant(tenantId: string): Tenant | undefined {
+  return db.prepare('SELECT * FROM tenants WHERE tenant_id = ?').get(tenantId) as
+    | Tenant
+    | undefined;
+}
+
+export function updateTenant(
+  tenantId: string,
+  updates: Record<string, unknown>,
+): Tenant | undefined {
+  const allowed = [
+    'owner', 'jarvis_name', 'moneypenny_power', 'timezone', 'language', 'weather_location',
+  ];
+  const fields = Object.keys(updates).filter((k) => allowed.includes(k));
+  if (fields.length === 0) return undefined;
+
+  const setClauses = fields.map((f) => `${f} = ?`).join(', ');
+  const values = fields.map((f) => updates[f]);
+  db.prepare(
+    `UPDATE tenants SET ${setClauses} WHERE tenant_id = ?`,
+  ).run(...values, tenantId);
+
+  return getTenant(tenantId);
+}
+
+// --- Session deletion (used by portal for personality reset) ---
+
+export function deleteSession(groupFolder: string): void {
+  db.prepare('DELETE FROM sessions WHERE group_folder = ?').run(groupFolder);
+}
+
+// --- Helpers ---
+
+function flattenQuietHours(
+  body: Record<string, unknown>,
+): Record<string, unknown> {
+  const flat = { ...body };
+  const qh = flat.quiet_hours as Record<string, string> | undefined;
+  if (qh) {
+    if (qh.start !== undefined) flat.quiet_hours_start = qh.start;
+    if (qh.end !== undefined) flat.quiet_hours_end = qh.end;
+    delete flat.quiet_hours;
+  }
+  return flat;
 }
 
 // --- JSON migration ---
