@@ -653,8 +653,16 @@ export async function handlePortalRequest(
     const db = getDb();
     const jobs = db
       .prepare(
-        `SELECT id, group_folder, chat_jid, prompt, schedule_type, schedule_value,
-                context_mode, next_run, status, created_at
+        `SELECT id,
+                CASE WHEN status = 'disabled' OR status = 'paused' THEN 0 ELSE 1 END AS enabled,
+                CASE WHEN name IS NOT NULL AND name != '' THEN name
+                     ELSE SUBSTR(prompt, 1, CASE WHEN INSTR(prompt, CHAR(10)) > 0
+                                                 THEN INSTR(prompt, CHAR(10)) - 1
+                                                 ELSE MIN(LENGTH(prompt), 80) END)
+                END AS name,
+                group_folder, chat_jid, prompt, schedule_type, schedule_value,
+                context_mode, next_run, status, created_at,
+                last_run
          FROM scheduled_tasks ORDER BY next_run ASC`,
       )
       .all();
@@ -1042,11 +1050,15 @@ export async function handlePortalRequest(
   if (req.method === 'GET' && jobLogMatch) {
     try {
       const db = getDb();
-      const runs = db.prepare(`
+      const runs = db
+        .prepare(
+          `
         SELECT id, task_id AS job_id, run_at, status, result AS result_preview, duration_ms
         FROM task_run_logs WHERE task_id = ?
         ORDER BY run_at DESC LIMIT 10
-      `).all(jobLogMatch[1]);
+      `,
+        )
+        .all(jobLogMatch[1]);
       jsonResponse(res, runs);
     } catch (e) {
       jsonResponse(res, { error: String(e) }, 500);
@@ -1059,17 +1071,28 @@ export async function handlePortalRequest(
     try {
       const db = getDb();
       const days = parseInt(String(url.searchParams.get('days') || '7')) || 7;
-      const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
-      const runs = db.prepare(`
+      const since = new Date(
+        Date.now() - days * 24 * 60 * 60 * 1000,
+      ).toISOString();
+      const runs = db
+        .prepare(
+          `
         SELECT task_id AS job_id, run_at, status
         FROM task_run_logs WHERE run_at > ?
         ORDER BY run_at DESC
-      `).all(since);
+      `,
+        )
+        .all(since);
       // Group by job_id
-      const byJob: Record<string, Array<{date: string; status: string}>> = {};
-      (runs as Array<{job_id: string; run_at: string; status: string}>).forEach((r) => {
+      const byJob: Record<string, Array<{ date: string; status: string }>> = {};
+      (
+        runs as Array<{ job_id: string; run_at: string; status: string }>
+      ).forEach((r) => {
         if (!byJob[r.job_id]) byJob[r.job_id] = [];
-        byJob[r.job_id].push({ date: r.run_at.substring(0, 10), status: r.status });
+        byJob[r.job_id].push({
+          date: r.run_at.substring(0, 10),
+          status: r.status,
+        });
       });
       jsonResponse(res, byJob);
     } catch (e) {
@@ -1083,12 +1106,19 @@ export async function handlePortalRequest(
     try {
       const db = getDb();
       const cutoff = new Date(Date.now() - 5 * 60 * 1000).toISOString();
-      const running = db.prepare(`
+      const running = db
+        .prepare(
+          `
         SELECT id, id AS name FROM scheduled_tasks
         WHERE status = 'running' AND created_at > ?
         LIMIT 1
-      `).get(cutoff) as {id: string; name: string} | undefined;
-      jsonResponse(res, { running: !!running, current_job: running?.name || null });
+      `,
+        )
+        .get(cutoff) as { id: string; name: string } | undefined;
+      jsonResponse(res, {
+        running: !!running,
+        current_job: running?.name || null,
+      });
     } catch (e) {
       jsonResponse(res, { running: false, current_job: null });
     }
