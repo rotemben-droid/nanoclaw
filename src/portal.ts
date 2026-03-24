@@ -1066,6 +1066,45 @@ export async function handlePortalRequest(
     return true;
   }
 
+  // ── GET /api/jobs/runs — flat recent run log with job names ─
+  if (req.method === 'GET' && p === '/api/jobs/runs') {
+    try {
+      const db = getDb();
+      const limit = Math.min(parseInt(String(url.searchParams.get('limit') || '50')) || 50, 200);
+      const runs = db
+        .prepare(
+          `SELECT l.id, l.task_id AS job_id, st.name AS job_name, st.prompt,
+                  l.run_at, l.status, l.duration_ms, l.result, l.error
+           FROM task_run_logs l
+           LEFT JOIN scheduled_tasks st ON st.id = l.task_id
+           ORDER BY l.run_at DESC LIMIT ?`,
+        )
+        .all(limit) as Array<{
+          id: number;
+          job_id: string;
+          job_name: string | null;
+          prompt: string | null;
+          run_at: string;
+          status: string;
+          duration_ms: number;
+          result: string | null;
+          error: string | null;
+        }>;
+      // Derive display name from name or first line of prompt
+      const enriched = runs.map((r) => ({
+        ...r,
+        display_name:
+          r.job_name ||
+          (r.prompt || '').split('\n')[0].substring(0, 80) ||
+          r.job_id,
+      }));
+      jsonResponse(res, enriched);
+    } catch (e) {
+      jsonResponse(res, { error: String(e) }, 500);
+    }
+    return true;
+  }
+
   // ── GET /api/jobs/history — 7-day run history for ALL jobs ─
   if (req.method === 'GET' && p === '/api/jobs/history') {
     try {
