@@ -1070,7 +1070,10 @@ export async function handlePortalRequest(
   if (req.method === 'GET' && p === '/api/jobs/runs') {
     try {
       const db = getDb();
-      const limit = Math.min(parseInt(String(url.searchParams.get('limit') || '50')) || 50, 200);
+      const limit = Math.min(
+        parseInt(String(url.searchParams.get('limit') || '50')) || 50,
+        200,
+      );
       const runs = db
         .prepare(
           `SELECT l.id, l.task_id AS job_id, st.name AS job_name, st.prompt,
@@ -1080,16 +1083,16 @@ export async function handlePortalRequest(
            ORDER BY l.run_at DESC LIMIT ?`,
         )
         .all(limit) as Array<{
-          id: number;
-          job_id: string;
-          job_name: string | null;
-          prompt: string | null;
-          run_at: string;
-          status: string;
-          duration_ms: number;
-          result: string | null;
-          error: string | null;
-        }>;
+        id: number;
+        job_id: string;
+        job_name: string | null;
+        prompt: string | null;
+        run_at: string;
+        status: string;
+        duration_ms: number;
+        result: string | null;
+        error: string | null;
+      }>;
       // Derive display name from name or first line of prompt
       const enriched = runs.map((r) => ({
         ...r,
