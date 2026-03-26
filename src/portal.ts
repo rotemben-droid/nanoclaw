@@ -509,9 +509,9 @@ function proxyMoneypenny(
   tool: string,
   body: unknown,
 ): Promise<{ status: number; body: unknown }> {
-  const secrets = readEnvFile(['NANOCLAW_API_KEY']);
+  const secrets = readEnvFile(['MONEYPENNY_API_KEY', 'NANOCLAW_API_KEY']);
   const apiKey =
-    secrets.NANOCLAW_API_KEY ||
+    secrets.MONEYPENNY_API_KEY ||
     '2acc8deb480657669c15f511df33ee13824392e1d6c556ad21e406eddbbb44c9';
   const payload = JSON.stringify(body);
   return new Promise((resolve, reject) => {
