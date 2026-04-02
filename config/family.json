@@ -1,0 +1,105 @@
+{
+  "tenant_id": "benisrael",
+  "people": [
+    {
+      "id": "rotem",
+      "name": "Rotem",
+      "relation": "Self",
+      "emoji": "👤",
+      "color": "#58a6ff",
+      "contact_tier": 6,
+      "phone": "+19256995147",
+      "whatsapp": "+19256995147",
+      "email": "rotemben@gmail.com",
+      "telegram": "tg:1449522448",
+      "preferred_channel": "telegram",
+      "language": "en",
+      "quiet_hours": {
+        "start": "23:00",
+        "end": "07:00"
+      },
+      "jarvis_personality": "classic_butler",
+      "notes": "Owner. Primary channel is Telegram tg:1449522448."
+    },
+    {
+      "id": "miko",
+      "name": "Miko",
+      "relation": "Spouse",
+      "emoji": "💚",
+      "color": "#f778ba",
+      "contact_tier": 6,
+      "phone": "+19253214959",
+      "whatsapp": "+19253214959",
+      "email": "dr.michal@gmail.com",
+      "telegram": "",
+      "preferred_channel": "whatsapp",
+      "language": "he",
+      "quiet_hours": {
+        "start": "22:00",
+        "end": "07:00"
+      },
+      "jarvis_personality": "warm_friend",
+      "notes": ""
+    },
+    {
+      "id": "itay",
+      "name": "Itay",
+      "relation": "Son",
+      "emoji": "🧙",
+      "color": "#a371f7",
+      "contact_tier": 6,
+      "phone": "+19258779599",
+      "whatsapp": "+19258779599",
+      "email": "",
+      "telegram": "",
+      "preferred_channel": "whatsapp",
+      "language": "he",
+      "quiet_hours": {
+        "start": "21:00",
+        "end": "08:00"
+      },
+      "jarvis_personality": "storyteller",
+      "notes": "Nickname: Mr. Gandalf. Loves stories and adventure."
+    },
+    {
+      "id": "danielle",
+      "name": "Danielle",
+      "relation": "Daughter",
+      "emoji": "✨",
+      "color": "#f0883e",
+      "contact_tier": 6,
+      "phone": "+19252060778",
+      "whatsapp": "+19252060778",
+      "email": "",
+      "telegram": "",
+      "preferred_channel": "whatsapp",
+      "language": "he",
+      "quiet_hours": {
+        "start": "22:00",
+        "end": "08:00"
+      },
+      "jarvis_personality": "warm_friend",
+      "notes": ""
+    },
+    {
+      "id": "noya",
+      "name": "Noya",
+      "relation": "Daughter",
+      "emoji": "🚫",
+      "color": "#8b949e",
+      "contact_tier": 0,
+      "phone": "",
+      "whatsapp": "",
+      "email": "",
+      "telegram": "",
+      "preferred_channel": "none",
+      "language": "he",
+      "quiet_hours": {
+        "start": "00:00",
+        "end": "00:00"
+      },
+      "jarvis_personality": "warm_friend",
+      "notes": "Does not like AI. Do not contact under any circumstances. Tier 0 enforced server-side."
+    }
+  ]
+}

@@ -1,0 +1,3017 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jarvis Portal</title>
+<style>
+:root {
+  --bg:#0d1117; --surface:#161b22; --surface2:#21262d; --border:#30363d;
+  --text:#e6edf3; --muted:#8b949e; --accent:#58a6ff;
+  --green:#3fb950; --red:#f85149; --yellow:#d29922;
+  font-size:17px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;line-height:1.5;min-height:100vh}
+a{color:var(--accent);text-decoration:none}
+
+/* ══════════════════ LANDING PAGE ══════════════════ */
+.landing{
+  min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:radial-gradient(ellipse at 50% 40%, #1a2540 0%, #0d1117 65%);
+  position:relative;overflow:hidden;
+}
+.landing::before{
+  content:'';position:absolute;inset:0;
+  background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%2358a6ff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  pointer-events:none;
+}
+.landing-logo{font-size:20px;color:var(--muted);margin-bottom:32px;letter-spacing:2px;text-transform:uppercase;font-weight:600}
+.landing-logo span{color:var(--accent)}
+.family-card{
+  background:rgba(22,27,34,.85);border:1px solid rgba(88,166,255,.15);border-radius:24px;
+  padding:52px 64px;text-align:center;cursor:pointer;
+  backdrop-filter:blur(12px);
+  transition:border-color .3s,box-shadow .3s,transform .2s;
+  max-width:600px;width:100%;
+  box-shadow:0 0 60px rgba(88,166,255,.06);
+}
+.family-card:hover{
+  border-color:rgba(88,166,255,.4);
+  box-shadow:0 0 80px rgba(88,166,255,.14),0 20px 60px rgba(0,0,0,.4);
+  transform:translateY(-2px);
+}
+.family-avatars{display:flex;justify-content:center;gap:10px;margin-bottom:28px}
+.fav{
+  width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:24px;border:2px solid rgba(255,255,255,.06);
+  transition:transform .2s;
+}
+.family-card:hover .fav{transform:scale(1.05)}
+.family-name{font-size:32px;font-weight:800;letter-spacing:-0.5px;margin-bottom:8px;line-height:1.2}
+.family-tagline{font-size:16px;color:var(--muted);margin-bottom:28px}
+.family-stats{display:flex;justify-content:center;gap:28px;margin-bottom:20px}
+.fstat{text-align:center}
+.fstat-n{font-size:26px;font-weight:800;color:var(--accent)}
+.fstat-l{font-size:13px;color:var(--muted);margin-top:2px}
+.family-extra-stats{display:flex;flex-wrap:wrap;justify-content:center;gap:16px;margin-bottom:28px;font-size:14px;color:var(--muted)}
+.family-extra-stats .fxs{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:6px 14px;display:flex;align-items:center;gap:6px}
+.family-extra-stats .fxs strong{color:var(--text);font-weight:600}
+.enter-btn{
+  display:inline-flex;align-items:center;gap:10px;
+  padding:14px 32px;border-radius:12px;
+  background:var(--accent);color:#000;font-size:17px;font-weight:700;
+  border:none;cursor:pointer;transition:opacity .15s,transform .1s;
+  letter-spacing:-0.2px;
+}
+.enter-btn:hover{opacity:.9;transform:scale(1.02)}
+.enter-btn:active{transform:scale(.98)}
+.morning-btn{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:10px 24px;border-radius:10px;
+  background:rgba(63,185,80,.12);color:var(--green);
+  font-size:15px;font-weight:600;
+  border:1px solid rgba(63,185,80,.25);cursor:pointer;
+  transition:all .15s;margin-top:10px;
+}
+.morning-btn:hover{background:rgba(63,185,80,.2);border-color:var(--green)}
+.landing-footer{position:absolute;bottom:24px;font-size:13px;color:rgba(139,148,158,.4)}
+
+/* ══════════════════ DASHBOARD ══════════════════ */
+.dashboard{display:flex;flex-direction:column;min-height:100vh}
+.header{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 28px;display:flex;align-items:center;gap:16px;flex-shrink:0}
+.logo{font-size:20px;font-weight:800;letter-spacing:-0.5px;cursor:pointer}
+.logo:hover{color:var(--accent)}
+.logo-sub{font-size:13px;color:var(--muted);font-weight:400;margin-top:1px}
+.hstats{display:flex;gap:16px;margin-left:auto;align-items:center;flex-wrap:wrap}
+.hstat{font-size:14px;color:var(--muted)}
+.hstat strong{color:var(--text);font-size:16px;font-weight:700}
+.next-chip{background:rgba(63,185,80,.12);color:var(--green);border:1px solid rgba(63,185,80,.25);padding:3px 10px;border-radius:20px;font-size:13px;font-weight:600}
+.mp-indicator{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--surface2);position:relative;transition:all .15s}
+.mp-indicator:hover{border-color:var(--accent)}
+.mp-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.mp-tooltip{display:none;position:absolute;top:calc(100% + 8px);right:0;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 18px;font-size:14px;white-space:nowrap;z-index:100;box-shadow:0 8px 24px rgba(0,0,0,.4);min-width:220px}
+.mp-indicator.show-tip .mp-tooltip{display:block}
+.search-btn{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:5px 12px;font-size:14px;color:var(--muted);cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .15s}
+.search-btn:hover{border-color:var(--accent);color:var(--text)}
+.search-btn kbd{font-size:12px;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:1px 5px;font-family:inherit}
+
+/* Section nav */
+.section-nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 28px;display:flex;align-items:flex-end;gap:2px;flex-shrink:0}
+.stab{display:flex;align-items:center;gap:8px;padding:12px 20px 10px;border:none;background:none;color:var(--muted);font-size:15px;font-weight:600;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-1px;white-space:nowrap;transition:color .15s,border-color .15s}
+.stab:hover{color:var(--text)}
+.stab.active{color:var(--text);border-bottom-color:var(--accent)}
+
+.person-nav{background:var(--surface);border-bottom:2px solid var(--border);padding:0 28px;display:flex;align-items:flex-end;gap:2px;overflow-x:auto;flex-shrink:0}
+.ptab{display:flex;align-items:center;gap:8px;padding:13px 18px 11px;border:none;background:none;color:var(--muted);font-size:16px;font-weight:500;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;white-space:nowrap;transition:color .15s,border-color .15s}
+.ptab:hover{color:var(--text)}
+.ptab.active{color:var(--text);border-bottom-color:var(--pc,var(--accent))}
+.ptab .pdot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.ptab .pcnt{background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:1px 7px;font-size:13px;color:var(--muted)}
+.ptab.active .pcnt{color:var(--text)}
+.ptab .health-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-left:-4px}
+.ptab .vacation-badge{font-size:14px;margin-left:2px}
+.ptab-add{padding:13px 14px 11px;border:none;background:none;color:var(--muted);font-size:22px;line-height:1;cursor:pointer;margin-bottom:-2px;border-bottom:3px solid transparent;transition:color .15s}
+.ptab-add:hover{color:var(--accent)}
+
+.main{flex:1;overflow-y:auto;padding:28px 40px;max-width:1440px;width:100%;margin:0 auto}
+
+/* ── Profile card ── */
+.profile-card{background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--pc,var(--accent));border-radius:16px;padding:26px 28px;margin-bottom:22px;display:flex;gap:22px;align-items:flex-start}
+.avatar-lg{width:76px;height:76px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:34px;flex-shrink:0;border:2px solid rgba(255,255,255,.06);box-shadow:0 0 0 4px var(--pc-a,rgba(88,166,255,.12))}
+.profile-body{flex:1;min-width:0}
+.profile-name{font-size:28px;font-weight:800;line-height:1.1;margin-bottom:3px}
+.profile-rel{font-size:15px;color:var(--muted);margin-bottom:12px}
+.vacation-banner{background:rgba(210,153,34,.1);border:1px solid rgba(210,153,34,.3);border-radius:10px;padding:10px 16px;margin-bottom:14px;display:flex;align-items:center;gap:10px;font-size:15px;color:var(--yellow)}
+.vacation-banner .vac-end{margin-left:auto}
+.health-bar{margin-bottom:14px;display:flex;flex-direction:column;gap:6px}
+.health-issue{display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:8px;font-size:14px}
+.health-issue.warn{background:rgba(210,153,34,.08);border:1px solid rgba(210,153,34,.2);color:var(--yellow)}
+.health-issue.error{background:rgba(248,81,73,.08);border:1px solid rgba(248,81,73,.2);color:var(--red)}
+.health-issue .hi-btn{margin-left:auto;background:none;border:1px solid currentColor;border-radius:6px;padding:3px 10px;font-size:13px;color:inherit;cursor:pointer;opacity:.8;transition:opacity .15s}
+.health-issue .hi-btn:hover{opacity:1}
+.tier-label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:10px}
+.tier-row{display:flex;gap:5px;flex-wrap:nowrap}
+.tier-btn{display:flex;flex-direction:row;align-items:center;gap:5px;padding:7px 8px;border-radius:8px;border:2px solid var(--border);background:var(--surface2);color:var(--muted);font-size:12px;cursor:pointer;flex:1;white-space:nowrap;transition:all .15s;min-width:0}
+.tier-btn:hover{border-color:#484f58;color:var(--text)}
+.tier-btn.active{border-color:var(--tc,var(--accent));background:rgba(88,166,255,.07);color:var(--text)}
+.tier-btn .ticon{font-size:15px;line-height:1;flex-shrink:0}
+.tier-btn .tname{font-size:11px;font-weight:700;overflow:hidden;text-overflow:ellipsis}
+.tier-btn.active .tname{color:var(--tc,var(--accent))}
+.tier-btn[data-tier="0"].active{border-color:var(--red);background:rgba(248,81,73,.07)}
+.tier-btn[data-tier="0"].active .tname{color:var(--red)}
+.blocked-warn{display:none;margin-top:10px;padding:10px 14px;background:rgba(248,81,73,.08);border:1px solid rgba(248,81,73,.28);border-radius:8px;font-size:14px;color:var(--red);align-items:center;gap:8px}
+.blocked-warn.show{display:flex}
+.profile-actions{flex-shrink:0;display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap}
+
+/* ── Quick Actions ── */
+.quick-actions{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:22px}
+.qa-btn{display:flex;flex-direction:column;align-items:center;gap:5px;padding:16px 22px;border-radius:14px;border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer;transition:all .15s;min-width:108px;text-align:center}
+.qa-btn:hover{border-color:var(--pc,var(--accent));background:var(--pc-a,rgba(88,166,255,.07));transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.2)}
+.qa-btn:active{transform:translateY(0)}
+.qa-btn .qa-icon{font-size:26px;line-height:1}
+.qa-btn .qa-label{font-size:13px;font-weight:600;color:var(--muted)}
+
+/* ── Settings grid ── */
+.settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:22px}
+@media(max-width:720px){.settings-grid{grid-template-columns:1fr}}
+.settings-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px 24px}
+.card-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:16px}
+
+.preset-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:14px}
+.preset-card{padding:11px 5px;border-radius:10px;border:2px solid var(--border);background:var(--surface2);cursor:pointer;text-align:center;transition:all .15s}
+.preset-card:hover{border-color:#484f58}
+.preset-card.active{border-color:var(--pc,var(--accent));background:rgba(88,166,255,.06)}
+.preset-icon{font-size:22px;margin-bottom:4px}
+.preset-name{font-size:11px;font-weight:600;line-height:1.2}
+.preset-card .preset-desc{font-size:12px;color:var(--muted);line-height:1.4;margin-top:3px;text-align:center}
+
+.lang-row{display:flex;gap:6px;margin-top:2px}
+.lang-btn{padding:6px 13px;border-radius:8px;border:1px solid var(--border);background:none;color:var(--muted);font-size:14px;cursor:pointer;transition:all .15s}
+.lang-btn:hover{color:var(--text)}
+.custom-tone-toggle{background:none;border:none;color:var(--muted);font-size:14px;cursor:pointer;padding:10px 0 2px;text-align:left;text-decoration:underline;text-underline-offset:3px}
+.custom-tone-toggle:hover{color:var(--text)}
+.custom-tone-box{margin-top:10px;display:flex;flex-direction:column;gap:8px}
+.custom-tone-box textarea{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:10px 14px;font-size:15px;font-family:inherit;resize:vertical;min-height:90px;line-height:1.5;outline:none;box-sizing:border-box}
+.custom-tone-box textarea:focus{border-color:var(--accent)}
+.lang-btn.active{border-color:var(--pc,var(--accent));color:var(--text);background:var(--surface2)}
+
+.cf-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)}
+.cf-row:last-of-type{border-bottom:none}
+.cf-icon{font-size:18px;width:26px;text-align:center;flex-shrink:0}
+.cf-lbl{font-size:14px;color:var(--muted);width:88px;flex-shrink:0}
+.cf-val{flex:1;font-size:15px}
+.cf-val.empty{color:var(--muted);font-style:italic;font-size:14px}
+.quiet-row{display:flex;align-items:center;gap:8px;padding-top:12px;font-size:14px;color:var(--muted);border-top:1px solid var(--border);margin-top:2px;flex-wrap:wrap}
+.quiet-row strong{color:var(--text);font-size:15px}
+
+/* ── Agents ── */
+.agents-hdr{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:16px}
+.agents-title{font-size:22px;font-weight:800}
+.agents-sub{font-size:15px;color:var(--muted);margin-top:2px}
+.agents-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px}
+
+.agent-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;transition:border-color .15s}
+.agent-card:hover{border-color:#484f58}
+.agent-card-hdr{display:flex;align-items:center;gap:12px;padding:18px 20px 14px;cursor:pointer;user-select:none}
+.agent-icon{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px;background:var(--surface2);flex-shrink:0}
+.agent-info{flex:1;min-width:0}
+.agent-name{font-size:18px;font-weight:700;margin-bottom:2px}
+.agent-desc{font-size:14px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.agent-meta{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.agent-cnt{font-size:13px;color:var(--muted)}
+.agent-chevron{font-size:11px;color:var(--muted);transition:transform .2s;margin-left:2px}
+.agent-card.open .agent-chevron{transform:rotate(180deg)}
+
+.agent-jobs{display:none;border-top:1px solid var(--border)}
+.agent-card.open .agent-jobs{display:block}
+.job-row{display:flex;align-items:center;gap:12px;padding:13px 20px;border-bottom:1px solid var(--border);transition:background .1s;flex-wrap:wrap}
+.job-row:last-child{border-bottom:none}
+.job-row:hover{background:var(--surface2)}
+.job-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.job-name{flex:1;font-size:15px;font-weight:600;min-width:120px}
+.job-last-run{font-size:12px;color:var(--muted);margin-right:4px}
+.job-sched{font-size:13px;color:var(--muted);text-align:right;margin-right:6px;min-width:100px}
+.job-countdown{font-size:12px;color:var(--accent);font-weight:600;min-width:70px;text-align:right}
+.job-countdown.overdue{color:var(--yellow)}
+.job-paused{font-size:11px;color:var(--yellow);font-weight:600;background:rgba(210,153,34,.12);padding:2px 8px;border-radius:10px}
+.job-status-on{font-size:11px;font-weight:700;color:var(--green);background:rgba(63,185,80,.12);padding:2px 8px;border-radius:10px;border:1px solid rgba(63,185,80,.2)}
+.job-status-off{font-size:11px;font-weight:700;color:var(--muted);background:var(--surface2);padding:2px 8px;border-radius:10px;border:1px solid var(--border)}
+.job-acts{display:flex;gap:4px}
+.agent-footer{padding:10px 20px;display:flex;justify-content:flex-end;border-top:1px solid var(--border);background:rgba(255,255,255,.015)}
+
+.add-agent-card{background:none;border:2px dashed var(--border);border-radius:14px;padding:26px 18px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;cursor:pointer;transition:all .15s;min-height:108px;color:var(--muted)}
+.add-agent-card:hover{border-color:var(--accent);color:var(--accent);background:rgba(88,166,255,.03)}
+.add-icon{font-size:26px;line-height:1}
+.add-lbl{font-size:16px;font-weight:700}
+.add-sub{font-size:13px;opacity:.7;text-align:center}
+
+/* ── System view ── */
+.sys-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px 28px;margin-bottom:22px}
+.sys-row{display:flex;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);gap:12px}
+.sys-row:last-child{border-bottom:none}
+.sys-lbl{font-size:15px;color:var(--muted);width:180px;flex-shrink:0}
+.sys-val{font-size:16px}
+.power-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 14px;border-radius:20px;font-size:15px;font-weight:700;background:rgba(63,185,80,.12);color:var(--green);border:1px solid rgba(63,185,80,.25)}
+
+/* ── Activity feed ── */
+.activity-table{width:100%}
+.activity-row{display:flex;align-items:center;gap:14px;padding:14px 20px;background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:8px;transition:background .15s}
+.activity-row:hover{background:var(--surface2)}
+.act-person{font-size:20px;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.act-info{flex:1;min-width:0}
+.act-name{font-size:16px;font-weight:600}
+.act-desc{font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.act-time{text-align:right;min-width:120px}
+.act-last{font-size:14px;color:var(--muted)}
+.act-next{font-size:13px;color:var(--accent);font-weight:600}
+.act-status{min-width:50px;text-align:center}
+.activity-empty{text-align:center;padding:60px 20px;color:var(--muted);font-size:18px}
+
+/* ── Capabilities ── */
+.cap-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:32px}
+@media(max-width:900px){.cap-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:560px){.cap-grid{grid-template-columns:1fr}}
+.cap-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px;transition:border-color .15s}
+.cap-card:hover{border-color:#484f58}
+.cap-card .cap-icon{font-size:32px;margin-bottom:10px}
+.cap-card .cap-name{font-size:17px;font-weight:700;margin-bottom:4px}
+.cap-card .cap-desc{font-size:14px;color:var(--muted);margin-bottom:8px;line-height:1.4}
+.cap-card .cap-power{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:700;padding:3px 10px;border-radius:20px}
+.cap-power.p1{background:rgba(63,185,80,.12);color:var(--green);border:1px solid rgba(63,185,80,.2)}
+.cap-power.p2{background:rgba(88,166,255,.12);color:var(--accent);border:1px solid rgba(88,166,255,.2)}
+.cap-power.p3{background:rgba(163,113,247,.12);color:#a371f7;border:1px solid rgba(163,113,247,.2)}
+.cap-locked{opacity:.5}
+
+.setup-grid{display:flex;flex-direction:column;gap:8px;margin-bottom:32px}
+.setup-row{display:flex;align-items:center;gap:12px;padding:12px 18px;background:var(--surface);border:1px solid var(--border);border-radius:10px;font-size:15px}
+.setup-icon{font-size:18px;width:28px;text-align:center;flex-shrink:0}
+.setup-status{font-size:20px;flex-shrink:0}
+
+.power-comparison{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:24px}
+.power-col{background:var(--surface);border:2px solid var(--border);border-radius:14px;padding:20px;text-align:center}
+.power-col.current{border-color:var(--accent);background:rgba(88,166,255,.05)}
+.power-col .pc-tier{font-size:24px;font-weight:800;margin-bottom:4px}
+.power-col .pc-name{font-size:14px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px}
+.power-col .pc-list{text-align:left;font-size:14px;line-height:1.8}
+
+/* ── Timeline ── */
+.timeline-controls{display:flex;align-items:center;gap:16px;margin-bottom:20px;flex-wrap:wrap}
+.tl-toggle{display:flex;border-radius:8px;border:1px solid var(--border);overflow:hidden}
+.tl-toggle button{padding:8px 18px;border:none;background:var(--surface2);color:var(--muted);font-size:14px;font-weight:600;cursor:pointer;transition:all .15s}
+.tl-toggle button.active{background:var(--accent);color:#000}
+.timeline-outer{margin:0 -28px;padding:0 24px;background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.main.timeline-mode{max-width:90vw;padding-left:0;padding-right:0}
+.main.timeline-mode .timeline-outer{margin:0;padding:0 24px}
+.main.timeline-mode .timeline-controls{padding:0 28px}
+.timeline-wrap{overflow-x:auto;padding:20px 28px;position:relative}
+.timeline-grid{width:2640px}
+.tl-header{display:flex;margin-bottom:4px}
+.tl-header-spacer{width:120px;flex-shrink:0}
+.tl-hours{display:flex;width:2400px}
+.tl-hour{width:100px;flex-shrink:0;text-align:left;font-size:12px;color:var(--muted);font-weight:600;padding-left:4px;box-sizing:border-box}
+.tl-person-row{display:flex;align-items:center;border-bottom:1px solid rgba(48,54,61,.4);position:relative}
+.tl-person-label{width:120px;flex-shrink:0;font-size:15px;font-weight:700;display:flex;align-items:center;gap:8px}
+.tl-track{width:2400px;flex-shrink:0;position:relative}
+.tl-gridline{position:absolute;top:0;bottom:0;width:1px;background:rgba(48,54,61,.7);pointer-events:none}
+.tl-night{position:absolute;top:0;bottom:0;background:rgba(0,0,0,.22);pointer-events:none}
+.tl-pill{position:absolute;height:26px;min-width:64px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#000;cursor:pointer;transition:transform .1s,box-shadow .15s,filter .15s;z-index:2;white-space:nowrap;padding:0 7px;letter-spacing:.2px;overflow:visible}
+.tl-pill span{overflow:hidden;text-overflow:ellipsis;max-width:100%;white-space:nowrap;display:block}
+.tl-pill:hover{transform:scale(1.05) translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.6);z-index:10;filter:brightness(1.15)}
+.tl-pill::after{content:attr(data-label);position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:#1c2128;color:var(--text);font-size:12px;font-weight:600;padding:5px 10px;border-radius:6px;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .15s;border:1px solid var(--border);box-shadow:0 4px 12px rgba(0,0,0,.5);z-index:100}
+.tl-pill:hover::after{opacity:1}
+.tl-now-line{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--red);z-index:8;pointer-events:none;border-radius:2px}
+.tl-now-label{position:absolute;top:-20px;transform:translateX(-50%);font-size:10px;color:var(--red);font-weight:800;background:var(--bg);padding:1px 4px;border-radius:3px;white-space:nowrap}
+
+/* ── Add Person Wizard ── */
+.ap-step-bar{display:flex;align-items:center;gap:0;margin-bottom:28px;padding:0 4px}
+.ap-step-dot{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;cursor:pointer}
+.ap-step-dot .dot{width:28px;height:28px;border-radius:50%;background:var(--surface2);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--muted);transition:all .2s}
+.ap-step-dot.done .dot{background:rgba(63,185,80,.2);border-color:var(--green);color:var(--green)}
+.ap-step-dot.active .dot{background:var(--accent);border-color:var(--accent);color:#000}
+.ap-step-dot .dlbl{font-size:11px;color:var(--muted);font-weight:600;white-space:nowrap}
+.ap-step-dot.active .dlbl{color:var(--accent)}
+.ap-step-line{flex:1;height:2px;background:var(--border);margin-bottom:18px;max-width:40px}
+.ap-step-line.done{background:var(--green)}
+.ap-section-label{font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px}
+.ap-relation-grid{display:flex;flex-wrap:wrap;gap:8px}
+.ap-rel-btn{padding:8px 16px;border-radius:8px;border:1.5px solid var(--border);background:var(--surface2);color:var(--muted);font-size:14px;font-weight:600;cursor:pointer;transition:all .15s}
+.ap-rel-btn.active{border-color:var(--accent);background:rgba(88,166,255,.1);color:var(--accent)}
+.ap-emoji-grid{display:grid;grid-template-columns:repeat(9,1fr);gap:4px;margin-top:6px}
+.ap-emoji-btn{font-size:22px;padding:6px;border-radius:8px;border:2px solid transparent;background:var(--surface2);cursor:pointer;text-align:center;transition:all .1s;line-height:1}
+.ap-emoji-btn.active{border-color:var(--accent);background:rgba(88,166,255,.1)}
+.ap-emoji-btn:hover{border-color:var(--border)}
+.ap-color-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.ap-color-sw{width:32px;height:32px;border-radius:50%;cursor:pointer;border:3px solid transparent;transition:all .15s;flex-shrink:0}
+.ap-color-sw.active{border-color:#fff;box-shadow:0 0 0 2px var(--accent)}
+.ap-channel-row{display:flex;gap:8px;flex-wrap:wrap}
+.ap-ch-btn{padding:8px 16px;border-radius:8px;border:1.5px solid var(--border);background:var(--surface2);color:var(--muted);font-size:14px;font-weight:600;cursor:pointer;transition:all .15s}
+.ap-ch-btn.active{border-color:var(--accent);background:rgba(88,166,255,.1);color:var(--accent)}
+.ap-lang-row{display:flex;gap:8px}
+.ap-lang-btn{padding:8px 20px;border-radius:8px;border:1.5px solid var(--border);background:var(--surface2);color:var(--muted);font-size:14px;font-weight:600;cursor:pointer;transition:all .15s}
+.ap-lang-btn.active{border-color:var(--accent);background:rgba(88,166,255,.1);color:var(--accent)}
+.ap-blocked-warn{background:rgba(248,81,73,.1);border:1.5px solid var(--red);border-radius:10px;padding:14px 16px;color:var(--red);font-size:14px;font-weight:600;margin-top:12px;display:none}
+.ap-blocked-warn.show{display:block}
+.ap-preview-card{background:var(--surface2);border:1.5px solid var(--border);border-radius:16px;padding:22px;text-align:center}
+.ap-preview-avatar{width:72px;height:72px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:36px;margin:0 auto 12px;border:3px solid var(--border)}
+.ap-preview-name{font-size:22px;font-weight:800;margin-bottom:4px}
+.ap-preview-rel{font-size:15px;color:var(--muted);margin-bottom:14px}
+.ap-preview-badges{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:14px}
+.ap-preview-badge{padding:5px 12px;border-radius:20px;font-size:13px;font-weight:700;border:1px solid var(--border);background:var(--surface)}
+.ap-preview-contacts{font-size:14px;color:var(--muted);line-height:1.8}
+.ap-wizard-nav{display:flex;align-items:center;justify-content:space-between;margin-top:24px;padding-top:16px;border-top:1px solid var(--border)}
+.ap-step-content{display:none}
+.ap-step-content.active{display:block}
+
+/* ── Toggle ── */
+.tog{position:relative;display:inline-block;width:40px;height:22px;flex-shrink:0}
+.tog input{opacity:0;width:0;height:0;position:absolute}
+.tog-s{position:absolute;inset:0;background:var(--surface2);border:1px solid var(--border);border-radius:22px;cursor:pointer;transition:.2s}
+.tog-s:before{content:'';position:absolute;width:16px;height:16px;left:2px;top:2px;background:var(--muted);border-radius:50%;transition:.2s}
+input:checked+.tog-s{background:rgba(63,185,80,.2);border-color:var(--green)}
+input:checked+.tog-s:before{background:var(--green);transform:translateX(18px)}
+
+/* ── Badges ── */
+.badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:13px;font-weight:700}
+.badge-on{background:rgba(63,185,80,.14);color:var(--green)}
+.badge-off{background:rgba(72,79,88,.22);color:var(--muted)}
+.badge-failed{background:rgba(248,81,73,.14);color:var(--red)}
+
+/* ── Buttons ── */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:15px;font-weight:500;cursor:pointer;transition:all .15s}
+.btn:hover{background:var(--border)}
+.btn-primary{background:var(--accent);border-color:var(--accent);color:#000;font-weight:700}
+.btn-primary:hover{opacity:.85}
+.btn-ghost{background:none;border-color:transparent;color:var(--muted)}
+.btn-ghost:hover{color:var(--text);background:var(--surface2);border-color:var(--border)}
+.btn-danger{color:var(--red)}
+.btn-danger:hover{background:rgba(248,81,73,.1);border-color:var(--red)}
+.btn-sm{padding:6px 12px;font-size:14px;border-radius:6px}
+.btn-icon{padding:6px 8px;border-radius:7px;font-size:15px}
+.btn-vacation{padding:8px 16px;border-radius:10px;font-size:14px;font-weight:600;border:1px solid var(--border);background:var(--surface2);color:var(--muted);cursor:pointer;transition:all .15s}
+.btn-vacation:hover{border-color:var(--yellow);color:var(--yellow)}
+.btn-vacation.active{border-color:var(--yellow);background:rgba(210,153,34,.1);color:var(--yellow)}
+
+/* ── Modal ── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:300;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .2s}
+.overlay.open{opacity:1;pointer-events:all}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:16px;width:100%;max-width:600px;max-height:90vh;display:flex;flex-direction:column}
+.modal-lg{max-width:700px}
+.modal-hdr{display:flex;align-items:center;padding:22px 26px 16px;border-bottom:1px solid var(--border)}
+.modal-title{flex:1;font-size:20px;font-weight:700}
+.modal-body{padding:22px 26px;overflow-y:auto;display:flex;flex-direction:column;gap:18px}
+.modal-footer{padding:16px 26px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end}
+
+/* ── Search overlay ── */
+.search-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:400;display:flex;flex-direction:column;align-items:center;padding:80px 20px 20px;opacity:0;pointer-events:none;transition:opacity .2s}
+.search-overlay.open{opacity:1;pointer-events:all}
+.search-box{width:100%;max-width:640px;background:var(--surface);border:2px solid var(--accent);border-radius:16px;padding:18px 24px;display:flex;align-items:center;gap:14px;margin-bottom:16px}
+.search-box input{flex:1;background:none;border:none;color:var(--text);font-size:20px;outline:none;font-family:inherit}
+.search-box input::placeholder{color:var(--muted)}
+.search-results{width:100%;max-width:640px;max-height:60vh;overflow-y:auto}
+.sr-group{margin-bottom:16px}
+.sr-group-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);padding:8px 0;margin-bottom:4px}
+.sr-item{display:flex;align-items:center;gap:12px;padding:12px 18px;background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:4px;cursor:pointer;transition:all .15s}
+.sr-item:hover{border-color:var(--accent);background:var(--surface2)}
+.sr-icon{font-size:20px;width:32px;text-align:center;flex-shrink:0}
+.sr-info{flex:1;min-width:0}
+.sr-name{font-size:16px;font-weight:600}
+.sr-desc{font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ── Form ── */
+.field label{display:block;font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px}
+.field input,.field textarea,.field select{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:10px 14px;font-size:16px;font-family:inherit;outline:none;transition:border-color .15s}
+.field input:focus,.field textarea:focus{border-color:var(--accent)}
+.field textarea{font-family:inherit;font-size:15px;resize:vertical;min-height:130px;line-height:1.5}
+.field-hint{font-size:13px;color:var(--muted);margin-top:5px}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+
+.sched-pills{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.spill{padding:5px 12px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);font-size:14px;cursor:pointer;transition:all .15s}
+.spill:hover{border-color:var(--accent);color:var(--accent)}
+.spill.picked{border-color:var(--accent);color:var(--accent);background:rgba(88,166,255,.08)}
+.sched-display{font-size:16px;color:var(--accent);min-height:22px;margin-bottom:4px;font-weight:500}
+.adv-toggle{font-size:13px;color:var(--accent);cursor:pointer;display:inline-block;margin-top:4px;opacity:.8}
+.adv-toggle:hover{opacity:1}
+.cron-adv{display:none;margin-top:8px}
+.cron-adv.show{display:block}
+
+/* ── Agent type picker ── */
+.agent-type-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.atcard{padding:16px 12px;border-radius:12px;border:2px solid var(--border);background:var(--surface2);cursor:pointer;text-align:center;transition:all .15s}
+.atcard:hover{border-color:var(--accent);background:rgba(88,166,255,.05)}
+.atcard.sel{border-color:var(--accent);background:rgba(88,166,255,.1)}
+.atcard.has{border-color:rgba(63,185,80,.4)}
+.at-ico{font-size:28px;margin-bottom:6px}
+.at-nm{font-size:15px;font-weight:700;margin-bottom:3px}
+.at-ds{font-size:12px;color:var(--muted);line-height:1.3}
+.at-act{font-size:11px;color:var(--green);font-weight:700;margin-top:4px}
+
+/* ── Skeleton loader ── */
+@keyframes pulse { 0%,100%{opacity:.4} 50%{opacity:.8} }
+.loading-dash{animation:pulse 1.5s ease-in-out infinite;color:var(--muted)}
+
+/* ── Inline compose (VA-05) ── */
+.inline-compose{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px 14px;margin-bottom:22px;transition:border-color .15s}
+.inline-compose:focus-within{border-color:var(--accent)}
+.inline-compose input{flex:1;background:none;border:none;color:var(--text);font-size:16px;font-family:inherit;outline:none}
+.inline-compose input::placeholder{color:var(--muted)}
+.compose-send{padding:8px 18px;border-radius:8px;border:none;background:var(--accent);color:#000;font-size:14px;font-weight:700;cursor:pointer;transition:opacity .15s;white-space:nowrap}
+.compose-send:hover{opacity:.85}
+.compose-channel{font-size:20px;cursor:pointer;opacity:.7;transition:opacity .15s;background:none;border:none;padding:4px}
+.compose-channel:hover{opacity:1}
+
+/* ── Toast ── */
+.toasts{position:fixed;bottom:24px;right:24px;display:flex;flex-direction:column;gap:8px;z-index:500}
+.toast{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 18px;font-size:15px;max-width:320px;display:flex;align-items:center;gap:10px;animation:tin .2s ease;box-shadow:0 4px 24px rgba(0,0,0,.4)}
+.toast.success{border-color:var(--green)}
+.toast.error{border-color:var(--red)}
+@keyframes tin{from{transform:translateY(10px);opacity:0}to{opacity:1}}
+
+/* ── Light mode ── */
+[data-theme="light"] {
+  --bg:#f6f8fa;--surface:#ffffff;--surface2:#f0f0f0;
+  --border:#d0d7de;--text:#1f2328;--muted:#656d76;
+  --accent:#0969da;--green:#1a7f37;--red:#cf222e;--yellow:#9a6700;
+}
+[data-theme="light"] body { background:var(--bg); color:var(--text); }
+[data-theme="light"] .landing { background:radial-gradient(ellipse at 50% 40%, #dce8f8 0%, #f6f8fa 65%); }
+
+/* ── Mobile ── */
+@media(max-width:600px){
+  .main{padding:16px 16px;}
+  .profile-card{flex-direction:column;gap:14px;}
+  .profile-actions{flex-direction:row;flex-wrap:wrap;}
+  .settings-grid{grid-template-columns:1fr;}
+  .agents-grid{grid-template-columns:1fr;}
+  .quick-actions{gap:8px;}
+  .qa-btn{min-width:80px;padding:12px 14px;}
+  .inline-compose{margin-bottom:16px;}
+  .section-nav{padding:0 12px;}
+  .person-nav{padding:0 12px;}
+  .header{padding:10px 16px;}
+  .cap-grid{grid-template-columns:1fr 1fr;}
+  .hstats .hstat{display:none;}
+}
+
+/* ── Font size toggle ── */
+.font-toggle{position:fixed;bottom:24px;left:24px;display:flex;gap:4px;z-index:200}
+.font-toggle button{width:36px;height:36px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--muted);font-size:14px;font-weight:700;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center}
+.font-toggle button:hover{border-color:var(--accent);color:var(--text)}
+.font-toggle button.active{border-color:var(--accent);color:var(--accent);background:rgba(88,166,255,.1)}
+
+/* ── Quick action modal ── */
+.curl-box{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:14px;font-family:'SF Mono',Consolas,monospace;font-size:13px;color:var(--accent);word-break:break-all;line-height:1.6;position:relative}
+.curl-copy{position:absolute;top:8px;right:8px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:4px 10px;font-size:12px;color:var(--muted);cursor:pointer;transition:all .15s}
+.curl-copy:hover{color:var(--text);border-color:var(--accent)}
+</style>
+</head>
+<body>
+
+<!-- ══════════ LANDING PAGE ══════════ -->
+<div id="landing" class="landing">
+  <div class="landing-logo">&#9889; <span>Jarvis</span> Portal</div>
+  <div class="family-card" onclick="enterPortal()">
+    <div class="family-avatars" id="landing-avatars"></div>
+    <div class="family-name" id="landing-name">The Family</div>
+    <div class="family-tagline" id="landing-tagline">Personal AI assistant &middot; Running 24/7</div>
+    <div class="family-stats">
+      <div class="fstat"><div class="fstat-n" id="ls-jobs"><span class="loading-dash">&mdash;</span></div><div class="fstat-l">Automations</div></div>
+      <div class="fstat"><div class="fstat-n" id="ls-on"><span class="loading-dash">&mdash;</span></div><div class="fstat-l">Active</div></div>
+      <div class="fstat"><div class="fstat-n" id="ls-members"><span class="loading-dash">&mdash;</span></div><div class="fstat-l">Family members</div></div>
+    </div>
+    <div class="family-extra-stats" id="landing-extra"></div>
+    <button class="enter-btn" onclick="enterPortal()">Enter Portal &rarr;</button>
+    <button class="morning-btn" onclick="event.stopPropagation();triggerMorningBrief()">&#9654; Morning Brief</button>
+  </div>
+  <div class="landing-footer">Powered by Jarvis + Moneypenny</div>
+</div>
+
+<!-- ══════════ DASHBOARD ══════════ -->
+<div id="dashboard" class="dashboard" style="display:none">
+  <header class="header">
+    <div>
+      <div class="logo" onclick="goHome()">&#9889; Jarvis Portal</div>
+      <div class="logo-sub" id="hdr-sub"></div>
+    </div>
+    <div class="hstats">
+      <div class="hstat"><strong id="hs-jobs">&mdash;</strong> automations</div>
+      <div class="hstat"><strong id="hs-on">&mdash;</strong> active</div>
+      <div id="hs-next-wrap" style="display:none"><span class="next-chip" id="hs-next"></span></div>
+      <button id="theme-toggle" onclick="toggleTheme()" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:5px 10px;font-size:16px;cursor:pointer;color:var(--muted);transition:all .15s" title="Toggle light/dark mode">&#9728;&#65039;</button>
+      <div class="mp-indicator" id="mp-indicator" onclick="toggleMpTip()">
+        <span class="mp-dot" id="mp-dot" style="background:var(--muted)"></span>
+        <span id="mp-label">MP: ...</span>
+        <div class="mp-tooltip" id="mp-tooltip">
+          <div style="font-weight:700;margin-bottom:6px">Moneypenny Status</div>
+          <div id="mp-tip-content">Checking...</div>
+        </div>
+      </div>
+      <button class="search-btn" onclick="openSearch()">
+        <span>&#128269;</span> Search <kbd>&#8984;K</kbd>
+      </button>
+      <div class="hstat" style="font-size:13px;color:var(--muted)" id="hs-time"></div>
+      <div id="hs-user" style="display:none;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:5px 12px 5px 8px;font-size:14px">
+        <span id="hs-user-avatar" style="font-size:18px;line-height:1"></span>
+        <span id="hs-user-name" style="font-weight:600"></span>
+      </div>
+    </div>
+  </header>
+  <nav class="section-nav" id="section-nav"></nav>
+  <nav class="person-nav" id="person-nav"></nav>
+  <main class="main" id="main"></main>
+</div>
+
+<!-- ══════════ JOB MODAL ══════════ -->
+<div class="overlay" id="job-modal" onclick="bgClose('job-modal',event)">
+  <div class="modal modal-lg" onclick="event.stopPropagation()">
+    <div class="modal-hdr">
+      <div class="modal-title" id="jm-title">New Automation</div>
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('job-modal')">&#10005;</button>
+    </div>
+    <div class="modal-body">
+      <div id="jm-dupe-warn" style="display:none;background:rgba(210,153,34,.1);border:1px solid rgba(210,153,34,.35);border-radius:8px;padding:10px 14px;font-size:14px;color:var(--yellow)"></div>
+      <div class="field-row">
+        <div class="field">
+          <label>Name</label>
+          <input id="jf-name" type="text" placeholder="e.g. Morning briefing">
+        </div>
+        <div class="field">
+          <label>For</label>
+          <select id="jf-person"></select>
+        </div>
+      </div>
+      <div class="field">
+        <label>When does this run?</label>
+        <div class="sched-pills" id="sched-pills"></div>
+        <div class="sched-display" id="sched-display">Pick a schedule above</div>
+        <span class="adv-toggle" onclick="toggleAdv()">&#9881; Advanced &mdash; enter cron expression</span>
+        <div class="cron-adv" id="cron-adv">
+          <input id="jf-cron" type="text" placeholder="0 7 * * *" oninput="cronInput()" style="margin-top:8px">
+          <div class="field-hint" id="cron-hint"></div>
+        </div>
+        <input type="hidden" id="jf-cron-val">
+      </div>
+      <div class="field">
+        <label>What should Jarvis do?</label>
+        <textarea id="jf-prompt" placeholder="Describe exactly what Jarvis should do -- tone, what to check, who to contact, what to say."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-danger" id="jm-del" style="display:none;margin-right:auto" onclick="deleteJob()">Delete</button>
+      <button class="btn btn-ghost" onclick="closeModal('job-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveJob()">Save Automation</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ ADD AGENT MODAL ══════════ -->
+<div class="overlay" id="agent-modal" onclick="bgClose('agent-modal',event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-hdr">
+      <div class="modal-title" id="am-title">Add an Agent</div>
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('agent-modal')">&#10005;</button>
+    </div>
+    <div class="modal-body">
+      <div style="font-size:15px;color:var(--muted)">Pick the type of agent. Each agent groups related automations together.</div>
+      <div class="agent-type-grid" id="at-grid"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('agent-modal')">Cancel</button>
+      <button class="btn btn-primary" id="am-next" disabled onclick="agentNext()">Choose Schedule &rarr;</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ EDIT PERSON MODAL ══════════ -->
+<div class="overlay" id="person-modal" onclick="bgClose('person-modal',event)">
+  <div class="modal modal-lg" onclick="event.stopPropagation()">
+    <div class="modal-hdr">
+      <div class="modal-title" id="pm-title">Edit Profile</div>
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('person-modal')">&#10005;</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="pm-id">
+      <div class="field-row">
+        <div class="field">
+          <label>Name</label>
+          <input id="pm-name" type="text" placeholder="First name">
+        </div>
+        <div class="field">
+          <label>Relationship</label>
+          <select id="pm-rel">
+            <option value="Self">Self</option>
+            <option value="Spouse">Spouse / Partner</option>
+            <option value="Son">Son</option>
+            <option value="Daughter">Daughter</option>
+            <option value="Parent">Parent</option>
+            <option value="Friend">Friend</option>
+            <option value="Colleague">Colleague</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>&#128241; Phone</label>
+          <input id="pm-phone" type="tel" placeholder="+1 555 000 0000">
+        </div>
+        <div class="field">
+          <label>&#128172; WhatsApp</label>
+          <input id="pm-whatsapp" type="tel" placeholder="+1 555 000 0000">
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>&#128231; Email</label>
+          <input id="pm-email" type="email" placeholder="name@example.com">
+        </div>
+        <div class="field">
+          <label>&#9992;&#65039; Telegram</label>
+          <input id="pm-telegram" type="text" placeholder="@handle or tg:chatid">
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Quiet hours &mdash; start (no contact after)</label>
+          <input id="pm-quiet-start" type="time">
+        </div>
+        <div class="field">
+          <label>Quiet hours &mdash; end (OK to contact after)</label>
+          <input id="pm-quiet-end" type="time">
+        </div>
+      </div>
+      <div class="field">
+        <label>Contact Permission</label>
+        <div class="tier-row" id="pm-tiers" style="flex-wrap:wrap;gap:6px"></div>
+      </div>
+      <div class="field">
+        <label>Notes (private &mdash; only Jarvis sees this)</label>
+        <input id="pm-notes" type="text" placeholder="e.g. Loves sports updates, prefers Hebrew">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('person-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="savePerson()">Save Profile</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ ADD PERSON WIZARD ══════════ -->
+<div class="overlay" id="addperson-modal" onclick="bgClose('addperson-modal',event)">
+  <div class="modal" style="max-width:620px" onclick="event.stopPropagation()">
+    <div class="modal-hdr">
+      <div class="modal-title" id="ap-modal-title">Add a Family Member</div>
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('addperson-modal')">&#10005;</button>
+    </div>
+    <div class="modal-body">
+      <!-- Step indicator -->
+      <div class="ap-step-bar" id="ap-step-bar">
+        <div class="ap-step-dot active" id="apdot-1" onclick="apGoStep(1)">
+          <div class="dot">1</div><div class="dlbl">Identity</div>
+        </div>
+        <div class="ap-step-line" id="apline-1"></div>
+        <div class="ap-step-dot" id="apdot-2" onclick="apGoStep(2)">
+          <div class="dot">2</div><div class="dlbl">Contact</div>
+        </div>
+        <div class="ap-step-line" id="apline-2"></div>
+        <div class="ap-step-dot" id="apdot-3" onclick="apGoStep(3)">
+          <div class="dot">3</div><div class="dlbl">Permissions</div>
+        </div>
+        <div class="ap-step-line" id="apline-3"></div>
+        <div class="ap-step-dot" id="apdot-4" onclick="apGoStep(4)">
+          <div class="dot">4</div><div class="dlbl">Preview</div>
+        </div>
+      </div>
+
+      <!-- Step 1: Identity -->
+      <div class="ap-step-content active" id="ap-step-1">
+        <div class="field" style="margin-bottom:20px">
+          <label style="font-size:17px;font-weight:700;margin-bottom:8px;display:block">What's their name?</label>
+          <input id="ap-name" type="text" placeholder="First name" style="font-size:18px" oninput="apData.name=this.value.trim()" autofocus>
+        </div>
+        <div class="field" style="margin-bottom:20px">
+          <div class="ap-section-label">Relationship to you</div>
+          <div class="ap-relation-grid" id="ap-rel-grid"></div>
+        </div>
+        <div class="field" style="margin-bottom:20px">
+          <div class="ap-section-label">Pick an emoji</div>
+          <div class="ap-emoji-grid" id="ap-emoji-grid"></div>
+        </div>
+        <div class="field">
+          <div class="ap-section-label">Pick a color</div>
+          <div class="ap-color-row" id="ap-color-row"></div>
+        </div>
+      </div>
+
+      <!-- Step 2: Contact -->
+      <div class="ap-step-content" id="ap-step-2">
+        <div class="field-row" style="margin-bottom:16px">
+          <div class="field">
+            <label>📱 Phone</label>
+            <input id="ap-phone" type="tel" placeholder="+1 555 000 0000" oninput="apPhoneInput(this.value)">
+          </div>
+          <div class="field">
+            <label>💬 WhatsApp</label>
+            <input id="ap-whatsapp" type="tel" placeholder="+1 555 000 0000" oninput="apData.whatsapp=this.value.trim()">
+          </div>
+        </div>
+        <div class="field-row" style="margin-bottom:16px">
+          <div class="field">
+            <label>📧 Email</label>
+            <input id="ap-email" type="email" placeholder="name@example.com" oninput="apData.email=this.value.trim()">
+          </div>
+          <div class="field">
+            <label>✈️ Telegram</label>
+            <input id="ap-telegram" type="text" placeholder="@handle or tg:123456" oninput="apData.telegram=this.value.trim()">
+          </div>
+        </div>
+        <div class="field" style="margin-bottom:16px">
+          <div class="ap-section-label">Preferred way to reach them</div>
+          <div class="ap-channel-row" id="ap-channel-row"></div>
+        </div>
+        <div class="field">
+          <div class="ap-section-label">🌙 Quiet hours — don't contact between</div>
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+            <input id="ap-quiet-start" type="time" value="22:00" style="width:auto" onchange="apData.quiet_start=this.value">
+            <span style="color:var(--muted);font-weight:600">and</span>
+            <input id="ap-quiet-end" type="time" value="07:00" style="width:auto" onchange="apData.quiet_end=this.value">
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3: Permissions & Personality -->
+      <div class="ap-step-content" id="ap-step-3">
+        <div class="field" style="margin-bottom:20px">
+          <div class="ap-section-label">Contact permission level</div>
+          <div class="tier-row" id="ap-tiers" style="flex-wrap:wrap;gap:6px"></div>
+          <div class="ap-blocked-warn" id="ap-blocked-warn">
+            ⛔ Jarvis will <strong>never</strong> contact this person. Enforced at the server level. Noya-tier restriction.
+          </div>
+        </div>
+        <div class="field" style="margin-bottom:20px">
+          <div class="ap-section-label">Jarvis personality for this person</div>
+          <div class="preset-grid" id="ap-presets"></div>
+        </div>
+        <div class="field">
+          <div class="ap-section-label">Language preference</div>
+          <div class="ap-lang-row" id="ap-lang-row"></div>
+        </div>
+      </div>
+
+      <!-- Step 4: Preview -->
+      <div class="ap-step-content" id="ap-step-4">
+        <div style="margin-bottom:16px;color:var(--muted);font-size:15px;text-align:center">
+          Here's how they'll appear in the portal. Everything can be edited later.
+        </div>
+        <div class="ap-preview-card" id="ap-preview-card"></div>
+      </div>
+    </div>
+    <div class="ap-wizard-nav">
+      <button class="btn btn-ghost" id="ap-back-btn" onclick="apBack()" style="display:none">← Back</button>
+      <div style="flex:1"></div>
+      <button class="btn btn-ghost" onclick="closeModal('addperson-modal')">Cancel</button>
+      <button class="btn btn-primary" id="ap-next-btn" onclick="apNext()" style="margin-left:8px">Next →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ VACATION MODAL ══════════ -->
+<div class="overlay" id="vacation-modal" onclick="bgClose('vacation-modal',event)">
+  <div class="modal" style="max-width:420px" onclick="event.stopPropagation()">
+    <div class="modal-hdr">
+      <div class="modal-title" id="vac-title">Vacation Mode</div>
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('vacation-modal')">&#10005;</button>
+    </div>
+    <div class="modal-body">
+      <div style="font-size:15px;color:var(--muted)" id="vac-desc">Pause automations. Pick a return date:</div>
+      <div class="field">
+        <label>Resume on</label>
+        <input id="vac-date" type="date">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('vacation-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveVacation()">Activate Vacation</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ QUICK ACTION MODAL ══════════ -->
+<div class="overlay" id="qa-modal" onclick="bgClose('qa-modal',event)">
+  <div class="modal" style="max-width:560px" onclick="event.stopPropagation()">
+    <div class="modal-hdr">
+      <div class="modal-title" id="qa-title">Quick Action</div>
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('qa-modal')">&#10005;</button>
+    </div>
+    <div class="modal-body" id="qa-body"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('qa-modal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ SEARCH OVERLAY ══════════ -->
+<div class="search-overlay" id="search-overlay" onclick="if(event.target===this)closeSearch()">
+  <div class="search-box">
+    <span style="font-size:20px;color:var(--muted)">&#128269;</span>
+    <input id="search-input" type="text" placeholder="Search jobs, people, capabilities..." oninput="onSearchInput()">
+    <kbd style="font-size:12px;color:var(--muted);border:1px solid var(--border);padding:2px 6px;border-radius:4px">ESC</kbd>
+  </div>
+  <div class="search-results" id="search-results"></div>
+</div>
+
+<div class="toasts" id="toasts"></div>
+
+<!-- ══════════ FONT SIZE TOGGLE ══════════ -->
+<div class="font-toggle" id="font-toggle">
+  <button onclick="setFontSize(17)" title="Normal">A</button>
+  <button onclick="setFontSize(20)" title="Large">A+</button>
+  <button onclick="setFontSize(24)" title="Extra Large">A++</button>
+</div>
+
+<script>
+/* ================================================================
+   CONSTANTS
+================================================================ */
+const API = window.location.pathname.replace(/\/$/, '') + '/api';
+
+const TIERS = [
+  {t:0,icon:'\u{1F6AB}',name:'Blocked',    color:'#f85149',desc:'No contact, ever'},
+  {t:1,icon:'\u{1F441}', name:'Read Only', color:'#8b949e',desc:'Read email & calendar only'},
+  {t:2,icon:'\u{1F6A8}',name:'Alerts',     color:'#d29922',desc:'Urgent/emergency only'},
+  {t:3,icon:'\u{1F4AC}',name:'Messages',   color:'#a371f7',desc:'WhatsApp & Telegram only'},
+  {t:4,icon:'\u{1F4E7}',name:'Email Only', color:'#58a6ff',desc:'Email only, no calls'},
+  {t:5,icon:'\u{1F4F5}',name:'No Calls',  color:'#3fb950',desc:'Messages & email, no calls'},
+  {t:6,icon:'\u2705',name:'Full Access',color:'#3fb950',desc:'All channels'},
+];
+
+const PERSONALITIES = [
+  {id:'classic_butler',icon:'🎩',name:'British Butler',  desc:'"Indeed, sir." Impeccably proper, dry wit, full sentences. Like Jeeves.'},
+  {id:'snarky_ai',     icon:'👨‍🍳',name:'Head Chef',      desc:'Direct, passionate, no fluff. Gordon Ramsay energy — channeled into helpfulness.'},
+  {id:'warm_friend',   icon:'🤗',name:'Warm Friend',    desc:'Caring, casual, encouraging. Like a brilliant close friend who knows everything.'},
+  {id:'coach',         icon:'🇮🇱',name:'Sabra',           desc:'"Yalla, let\'s go." Israeli directness + genuine warmth. Zero BS.'},
+  {id:'storyteller',   icon:'📖',name:'Storyteller',    desc:'Creative, narrative, magical. Every message is a small adventure.'},
+];
+
+const AGENT_TYPES = [
+  {id:'morning', icon:'\u{1F305}',name:'Morning Chaos', desc:'Briefing \u2014 calendar, weather, email',power:1},
+  {id:'email',   icon:'\u{1F4E7}',name:'Email Watch',   desc:'Monitor inbox for what matters',   power:1},
+  {id:'calendar',icon:'\u{1F4C5}',name:'Calendar',      desc:'Conflict detection & reminders',   power:1},
+  {id:'bedtime', icon:'\u{1F4A4}',name:'Bedtime',       desc:'Goodnight messages & routines',    power:2},
+  {id:'fitness', icon:'\u{1F4AA}',name:'Fitness',       desc:'Workouts, protein, health',        power:2},
+  {id:'research',icon:'\u{1F50D}',name:'Research',      desc:'Daily AI & news briefings',        power:2},
+  {id:'security',icon:'\u{1F512}',name:'Security',      desc:'Charges & fraud monitoring',       power:2},
+  {id:'family',  icon:'\u{1F468}\u200D\u{1F469}\u200D\u{1F467}',name:'Family',desc:'Messages & check-ins',power:2},
+  {id:'homelab', icon:'\u{1F3E0}',name:'Homelab',       desc:'Service monitoring & automation',  power:3},
+  {id:'custom',  icon:'\u26A1',name:'Custom',        desc:'Build your own from scratch',      power:1},
+];
+
+const SCHEDULES = [
+  {label:'6:30 AM daily',       cron:'30 6 * * *'},
+  {label:'7:00 AM daily',       cron:'0 7 * * *'},
+  {label:'7:30 AM weekdays',    cron:'30 7 * * 1-5'},
+  {label:'7:45 AM daily',       cron:'45 7 * * *'},
+  {label:'8:00 PM daily',       cron:'0 20 * * *'},
+  {label:'10:00 PM daily',      cron:'0 22 * * *'},
+  {label:'9 AM / 1 PM / 6 PM', cron:'0 9,13,18 * * *'},
+  {label:'9:30 AM / 1:30 PM / 6:30 PM', cron:'30 9,13,18 * * *'},
+  {label:'Every 2 hours',       cron:'0 */2 * * *'},
+  {label:'Every hour',          cron:'10 * * * *'},
+  {label:'Sunday 8 AM',         cron:'0 8 * * 0'},
+  {label:'Mon/Wed/Thu 3:30 PM', cron:'30 15 * * 1,3,4'},
+  {label:'Mon/Wed/Thu 5:30 PM', cron:'30 17 * * 1,3,4'},
+];
+
+const CAPABILITIES = [
+  {icon:'\u{1F4AC}',name:'WhatsApp Messages',desc:'Send messages to anyone in your family',power:1},
+  {icon:'\u{1F4DE}',name:'Voice Calls',desc:'Call family members via ElevenLabs voice',power:3},
+  {icon:'\u{1F4E7}',name:'Read Email',desc:'Scan and summarize Gmail inboxes',power:1},
+  {icon:'\u{1F4E8}',name:'Send Email',desc:'Reply and compose emails on your behalf',power:2},
+  {icon:'\u{1F4C5}',name:'Calendar',desc:'Check iCloud/Google Calendar for events and conflicts',power:1},
+  {icon:'\u{1F9E0}',name:'Memory',desc:'Remembers your family, tasks, preferences across conversations',power:1},
+  {icon:'\u23F0',name:'Automations',desc:'Run on any schedule \u2014 hourly, daily, weekly',power:1},
+  {icon:'\u{1F50D}',name:'Web Research',desc:'Search the web and summarize news',power:2},
+  {icon:'\u{1F3B5}',name:'Spotify',desc:'Control music playback',power:2},
+  {icon:'\u2708\uFE0F',name:'Telegram',desc:'Full two-way Telegram bot interface',power:1},
+  {icon:'\u{1F3E0}',name:'Home Assistant',desc:'Control lights, thermostat, devices',power:3},
+  {icon:'\u{1F5A5}\uFE0F',name:'Homelab',desc:'Monitor and control homelab services',power:3},
+];
+
+const TEMPLATES = {
+  'morning:rotem': "Check Rotem's Gmail for important emails in the last 12 hours. Then pull today's calendar events from iCloud. Compose a sharp morning briefing: start with the most critical email, then the day's schedule. Send as a WhatsApp message to Rotem. Tone: direct and energizing.",
+  'morning:miko': "Check Miko's Gmail for anything important in the last 12 hours. Pull Miko's calendar for today. Send a warm, caring morning summary to Miko via WhatsApp in Hebrew. Mention anything Rotem should know about Miko's day.",
+  'bedtime:itay': "Compose a short bedtime story for Itay (Mr. Gandalf) \u2014 adventurous, heroic, 3-4 paragraphs. Something with wizards, quests, and bravery. Send via WhatsApp. Sign off with 'Sweet dreams, Mr. Gandalf \u{1F9D9}'",
+  'bedtime:miko': "Write a romantic, warm goodnight message for Miko in Hebrew. Express love and appreciation. Mention one thing you're grateful for today. Send via WhatsApp.",
+  'fitness:rotem': "Send Rotem a workout preparation reminder via WhatsApp or Telegram. Energetic tone. Remind him to hydrate, warm up, and crush it. Include the date.",
+  'security:rotem': "Check Rotem's email for any alerts about charges, suspicious transactions, account security, or fraud. Also scan for bank/credit card notifications. If anything concerning is found, send an urgent alert via Telegram. If nothing, stay silent.",
+};
+
+const TEMPLATE_ANY = {
+  'email': "Check {name}'s Gmail for important, urgent, or action-required emails received in the last 4 hours. Ignore newsletters and promotional emails. Summarize any that need attention. Send summary via {channel}.",
+  'research': "Search for the top 3-5 AI and tech news stories from the last 24 hours. Focus on: new model releases, major funding rounds, product launches. Summarize each in 2 sentences. Send to Rotem's Telegram as a clean formatted brief.",
+};
+
+const DEFAULT_FAMILY = [
+  {id:'rotem',name:'Rotem',relation:'Self',emoji:'\u{1F464}',color:'#58a6ff',contact_tier:6,phone:'',whatsapp:'',email:'',telegram:'tg:1449522448',preferred_channel:'telegram',language:'en',quiet_hours:{start:'23:00',end:'07:00'},jarvis_personality:'classic_butler',notes:'Owner.'},
+  {id:'miko',name:'Miko',relation:'Spouse',emoji:'\u{1F49A}',color:'#f778ba',contact_tier:6,phone:'',whatsapp:'',email:'',telegram:'',preferred_channel:'whatsapp',language:'he',quiet_hours:{start:'22:00',end:'07:00'},jarvis_personality:'warm_friend',notes:''},
+  {id:'itay',name:'Itay',relation:'Son',emoji:'\u{1F9D9}',color:'#a371f7',contact_tier:6,phone:'',whatsapp:'',email:'',telegram:'',preferred_channel:'whatsapp',language:'he',quiet_hours:{start:'21:00',end:'08:00'},jarvis_personality:'storyteller',notes:'Nickname: Mr. Gandalf.'},
+  {id:'danielle',name:'Danielle',relation:'Daughter',emoji:'\u2728',color:'#f0883e',contact_tier:6,phone:'',whatsapp:'',email:'',telegram:'',preferred_channel:'whatsapp',language:'he',quiet_hours:{start:'22:00',end:'08:00'},jarvis_personality:'warm_friend',notes:''},
+  {id:'noya',name:'Noya',relation:'Daughter',emoji:'\u{1F6AB}',color:'#8b949e',contact_tier:0,phone:'',whatsapp:'',email:'',telegram:'',preferred_channel:'none',language:'he',quiet_hours:{start:'00:00',end:'00:00'},jarvis_personality:'warm_friend',notes:'Does not like AI. Blocked at server level.'},
+];
+const DEFAULT_TENANT = {tenant_id:'benisrael',owner:'Rotem',jarvis_name:'Jarvis',moneypenny_power:3,timezone:'America/Los_Angeles',language:'en',weather_location:'Los Altos Hills, CA 94022'};
+
+/* ================================================================
+   STATE
+================================================================ */
+let jobs=[], family=[...DEFAULT_FAMILY], tenant={...DEFAULT_TENANT};
+let activePerson='all', activeSection='family';
+let editingJobId=null, addingForPerson=null, selectedAgentType=null;
+let pickedCron='', editingPersonId=null, newPersonTier=6, newPersonPreset='warm_friend';
+let currentUser=null;
+let apStep=1, apData={};
+let mpOnline=null, timelineWeekend=false, vacPersonId=null;
+let searchDebounce=null;
+let jobHistory={};          // VA-09: {job_id: [{date,status}]}
+let calCache={};            // VA-04: {pid: {ts, events: []}}
+
+/* ================================================================
+   DETECTION & HELPERS
+================================================================ */
+function personOf(j){
+  const n=(j.name||'').toLowerCase(),p=(j.prompt||'').toLowerCase();
+  // System jobs — explicit first
+  if(/^system:|backup|heartbeat|workspace/.test(n)) return 'system';
+  // calendar-conflict and charges-watcher belong to rotem, not system
+  // Family
+  if(/miko/i.test(n)||/miko/i.test(p)) return 'miko';
+  if(/itay/i.test(n)||/itay/i.test(p)||/gandalf/i.test(p)) return 'itay';
+  if(/danielle/i.test(n)||/danielle/i.test(p)) return 'danielle';
+  if(/noya/i.test(n)||/noya/i.test(p)) return 'noya';
+  return 'rotem';
+}
+function channelOf(j){
+  const p=(j.prompt||'').toLowerCase();
+  if(/"action"\s*:\s*"call"|action.*call|moneypenny.*call/.test(p)) return {icon:'📞',label:'Voice call'};
+  if(/telegram/.test(p)) return {icon:'✈️',label:'Telegram'};
+  return {icon:'💬',label:'WhatsApp'};
+}
+function agentOf(j){
+  // use name if present, otherwise first line of prompt
+  const n=(j.name||'').toLowerCase();
+  const pt=(j.prompt||'').split('\n')[0].toLowerCase();
+  const s=n||pt;
+  if(/morning.chaos|executive.brief|voice.brief|daily.summary|miko.daily|morning.brief/.test(s)) return 'morning';
+  if(/email|gmail|inbox/.test(s)) return 'email';
+  if(/calendar.*conflict|conflict.*detect|check.*calendar/.test(s)) return 'calendar';
+  if(/bedtime/.test(s)) return 'bedtime';
+  if(/strength|protein|shot|workout|fitness|health/.test(s)) return 'fitness';
+  if(/research|x.*brief|ai.*brief|intelligence.*brief/.test(s)) return 'research';
+  if(/charges|security|fraud|alert|transaction/.test(s)) return 'security';
+  if(/^family:/.test(n)&&!/bedtime/.test(n)) return 'family';
+  if(/homelab|docker/.test(s)) return 'homelab';
+  if(/backup|workspace/.test(s)) return 'system';
+  return 'custom';
+}
+function labelOf(name){
+  if(!name) return 'Unnamed';
+  return name.replace(/^[a-z0-9-]+:/i,'').replace(/-(\d{4})$/,'').replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase()).trim()||name;
+}
+function isOn(j){
+  // enabled may be absent in older API responses — fall back to status
+  if(j.enabled===undefined||j.enabled===null) return j.status!=='disabled'&&j.status!=='paused';
+  return j.enabled!==0&&j.enabled!==false&&j.enabled!=='0';
+}
+function isVacation(p){ return p.vacation_until && new Date(p.vacation_until) > new Date(); }
+
+/* ================================================================
+   HEALTH (Feature 2 + Feature 15)
+================================================================ */
+function computeHealth(p, pJobs) {
+  const issues = [];
+  if (!p || p.contact_tier === 0) return {color:'green',issues};
+  const hasPhone = !!p.phone, hasWa = !!p.whatsapp, hasEmail = !!p.email, hasTg = !!p.telegram;
+  const allEmpty = !hasPhone && !hasWa && !hasEmail && !hasTg;
+  if (p.contact_tier > 0 && allEmpty) {
+    issues.push({level:'error',msg:`No contact info set \u2014 all automations will fail`,fix:'edit'});
+    return {color:'red',issues};
+  }
+  // Check if jobs need channels that are missing
+  const waJobs = pJobs.filter(j => /whatsapp/i.test(j.prompt||''));
+  const emailJobs = pJobs.filter(j => /email|gmail/i.test(j.prompt||''));
+  const tgJobs = pJobs.filter(j => /telegram/i.test(j.prompt||''));
+  if (waJobs.length && !hasWa) issues.push({level:'warn',msg:`WhatsApp not set \u2014 ${waJobs.length} automation${waJobs.length>1?'s':''} may fail`,fix:'whatsapp'});
+  if (emailJobs.length && !hasEmail) issues.push({level:'warn',msg:`Email not set \u2014 ${emailJobs.length} automation${emailJobs.length>1?'s':''} may fail`,fix:'email'});
+  if (tgJobs.length && !hasTg) issues.push({level:'warn',msg:`Telegram not set \u2014 ${tgJobs.length} automation${tgJobs.length>1?'s':''} may fail`,fix:'telegram'});
+  const failedJobs = pJobs.filter(j => j.status === 'failed');
+  if (failedJobs.length) issues.push({level:'warn',msg:`${failedJobs.length} job${failedJobs.length>1?'s':''} failed`,fix:null});
+  return {color: issues.some(i=>i.level==='error') ? 'red' : issues.length ? 'yellow' : 'green', issues};
+}
+
+function healthDotColor(p) {
+  const pJobs = jobs.filter(j => personOf(j) === p.id);
+  return computeHealth(p, pJobs).color;
+}
+
+/* ================================================================
+   CRON HELPERS
+================================================================ */
+function cronDesc(expr){
+  if(!expr) return '';
+  const p=expr.trim().split(/\s+/);
+  if(p.length!==5) return expr;
+  const[min,hour,,,dow]=p;
+  const ft=(h,m)=>{const hh=+h,mm=+m||0,ap=hh>=12?'PM':'AM',h12=hh%12||12;return`${h12}:${String(mm).padStart(2,'0')} ${ap}`;};
+  if(hour==='*') return `Every hour at :${String(+min).padStart(2,'0')}`;
+  if(hour.startsWith('*/')) return `Every ${hour.slice(2)} hours`;
+  if(hour.includes(',')) return `Daily at ${hour.split(',').map(h=>ft(h,min)).join(', ')}`;
+  const dm={0:'Sunday',1:'Mon',2:'Tue',3:'Wed',4:'Thu',5:'Fri',6:'Sat'};
+  const dl=dow==='*'?'Daily':dow==='1-5'?'Weekdays':dow==='0'?'Sundays':dow.split(',').map(d=>dm[+d]||d).join('/');
+  return`${dl} at ${ft(hour,min)}`;
+}
+function relTime(iso){
+  if(!iso) return '\u2014';
+  const d=new Date(iso)-Date.now(),a=Math.abs(d),past=d<0;
+  if(a<60000) return past?'just now':'starting now';
+  if(a<3600000){const m=Math.round(a/60000);return past?`${m}m ago`:`in ${m}m`;}
+  if(a<86400000){const h=Math.round(a/3600000);return past?`${h}h ago`:`in ${h}h`;}
+  return past?`${Math.round(a/86400000)}d ago`:`in ${Math.round(a/86400000)}d`;
+}
+function countdownStr(j) {
+  if (!isOn(j)) return {text:'Off',cls:''};
+  if (!j.next_run) return {text:'\u2014',cls:''};
+  const d = new Date(j.next_run) - Date.now();
+  if (d < -60000) return {text:'overdue',cls:'overdue'};
+  const a = Math.abs(d);
+  if (a < 60000) return {text:'now',cls:''};
+  const h = Math.floor(a/3600000), m = Math.floor((a%3600000)/60000);
+  if (h > 0) return {text:`in ${h}h ${m}m`,cls:''};
+  return {text:`in ${m}m`,cls:''};
+}
+function fmt12(t){const[h,m]=(t||'22:00').split(':').map(Number);const ap=h>=12?'PM':'AM',h12=h%12||12;return`${h12}:${String(m).padStart(2,'0')} ${ap}`;}
+function cronFireTimes(expr, isWeekend) {
+  if (!expr) return [];
+  const p = expr.trim().split(/\s+/);
+  if (p.length !== 5) return [];
+  const [min, hour,,, dow] = p;
+  // Check if this job fires on weekend/weekday
+  if (dow !== '*') {
+    const days = dow.includes('-') ? expandRange(dow) : dow.split(',').map(Number);
+    const isWkend = d => d === 0 || d === 6;
+    if (isWeekend && !days.some(isWkend)) return [];
+    if (!isWeekend && !days.some(d => !isWkend(d))) return [];
+  }
+  const hours = hour === '*' ? Array.from({length:24},(_,i)=>i) : hour.startsWith('*/') ? Array.from({length:Math.ceil(24/+hour.slice(2))},(_,i)=>i*(+hour.slice(2))) : hour.split(',').map(Number);
+  const mins = min === '*' ? [0] : min.startsWith('*/') ? [0] : min.split(',').map(Number);
+  const times = [];
+  for (const h of hours) for (const m of mins) times.push(h * 60 + m);
+  return times;
+}
+function expandRange(s) {
+  const [a,b] = s.split('-').map(Number);
+  const r = [];
+  for (let i = a; i <= b; i++) r.push(i);
+  return r;
+}
+
+/* ================================================================
+   API
+================================================================ */
+async function fetchAll(){
+  const[jr,fr,tr,mr,hr]=await Promise.allSettled([
+    fetch(`${API}/jobs`).then(r=>r.json()),
+    fetch(`${API}/family`).then(r=>r.json()),
+    fetch(`${API}/tenant`).then(r=>r.json()),
+    fetch(`${API}/moneypenny-family`).then(r=>r.json()),
+    fetch(`${API}/jobs/history?days=7`).then(r=>r.json()),
+  ]);
+  if(hr.status==='fulfilled'&&hr.value&&!hr.value.error) jobHistory=hr.value;
+  if(jr.status==='fulfilled'&&Array.isArray(jr.value)) jobs=jr.value;
+  if(fr.status==='fulfilled'&&fr.value?.people) family=fr.value.people;
+  if(tr.status==='fulfilled'&&tr.value?.tenant_id) tenant=tr.value;
+  // Merge Moneypenny contact data (phone/whatsapp/email) into our family records
+  if(mr.status==='fulfilled'){
+    const mpPpl=Array.isArray(mr.value)?mr.value:mr.value?.people||[];
+    if(mpPpl.length){
+      family=family.map(p=>{
+        const mp=mpPpl.find(m=>m.id===p.id||m.name?.toLowerCase()===p.name?.toLowerCase());
+        if(!mp) return p;
+        return{...p,
+          phone:p.phone||mp.phone||mp.number||'',
+          whatsapp:p.whatsapp||mp.whatsapp||mp.number||'',
+          email:p.email||mp.email||'',
+          telegram:p.telegram||mp.telegram||'',
+        };
+      });
+    }
+  }
+  document.getElementById('hs-time').textContent=`Updated ${new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})}`;
+  renderLanding();
+  renderDashboard();
+}
+
+/* VA-09 — 7-day sparkline for a job */
+function sparkline(jobId, scheduleValue) {
+  const history = jobHistory[jobId] || [];
+  const days = [];
+  for(let i=6; i>=0; i--) {
+    const d = new Date(); d.setDate(d.getDate()-i); d.setHours(0,0,0,0);
+    const dateStr = d.toISOString().substring(0,10);
+    const dayOfWeek = d.getDay(); // 0=Sun
+    // Check if this job is scheduled on this day
+    const fires = cronFireTimes(scheduleValue||'', dayOfWeek===0||dayOfWeek===6).length > 0;
+    const runs = history.filter(r => r.date === dateStr);
+    let color, title;
+    if (!fires) { color='transparent'; title='Not scheduled'; }
+    else if (!runs.length && i > 0) { color='var(--surface2)'; title=`${dateStr}: No run recorded`; }
+    else if (runs.some(r=>r.status==='failed')) { color='var(--red)'; title=`${dateStr}: Failed`; }
+    else if (runs.some(r=>r.status==='success')) { color='var(--green)'; title=`${dateStr}: OK`; }
+    else { color='var(--muted)'; title=`${dateStr}: Unknown`; }
+    days.push(`<span title="${title}" style="display:inline-block;width:10px;height:10px;border-radius:2px;background:${color};flex-shrink:0"></span>`);
+  }
+  return `<span style="display:inline-flex;gap:2px;align-items:center;margin-left:4px">${days.join('')}</span>`;
+}
+
+/* VA-04 — fetch calendar for a person (cached 5min) */
+async function fetchPersonCalendar(pid) {
+  const now = Date.now();
+  if (calCache[pid] && now - calCache[pid].ts < 5*60*1000) return calCache[pid].events;
+  try {
+    const p = family.find(f=>f.id===pid);
+    const r = await apiFetch('POST','/proxy/check_calendar',{account:p?.name||pid,query:'today'});
+    const text = typeof r === 'string' ? r : (r?.result||r?.message||JSON.stringify(r));
+    calCache[pid] = {ts: now, events: text};
+    // Update today panel if it's still showing
+    const el = document.getElementById(`cal-strip-${pid}`);
+    if (el) el.innerHTML = formatCalStrip(text);
+  } catch(e) {
+    calCache[pid] = {ts: now, events: null};
+  }
+}
+function formatCalStrip(text) {
+  if (!text || typeof text !== 'string') return '<span style="color:var(--muted)">No events</span>';
+  // Extract first meaningful line (not "No events" type messages)
+  const lines = text.split('\n').map(l=>l.trim()).filter(l=>l&&l.length>3&&!l.startsWith('{'));
+  if (!lines.length) return '<span style="color:var(--muted)">No events today</span>';
+  return lines.slice(0,2).map(l=>`<span style="display:block;font-size:13px;color:var(--fg)">${l.substring(0,80)}</span>`).join('');
+}
+
+async function loadSysLog(){
+  const el=document.getElementById('syslog-list');
+  const sub=document.getElementById('syslog-sub');
+  if(!el) return;
+  try {
+    const runs=await fetch(`${API}/jobs/runs?limit=50`).then(r=>r.json());
+    if(!Array.isArray(runs)){el.innerHTML='<div style="color:var(--muted);padding:12px">No log data</div>';return;}
+    sub.textContent=`${runs.length} most recent runs`;
+    el.innerHTML=runs.map(r=>{
+      const ts=new Date(r.run_at).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit',hour12:true});
+      const dur=r.duration_ms>0?`${(r.duration_ms/1000).toFixed(1)}s`:'—';
+      const ok=r.status==='success';
+      const dotColor=ok?'var(--green)':r.status==='failed'?'var(--red)':'var(--muted)';
+      // Strip <internal> tags from result for display
+      const preview=(r.result||r.error||'').replace(/<internal>[\s\S]*?<\/internal>/gi,'').trim().substring(0,120);
+      return`<div style="display:flex;align-items:flex-start;gap:10px;padding:9px 14px;border-bottom:1px solid var(--border);transition:background .1s" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background=''">
+        <span style="width:8px;height:8px;border-radius:50%;background:${dotColor};flex-shrink:0;margin-top:4px"></span>
+        <span style="color:var(--muted);min-width:140px;flex-shrink:0">${ts}</span>
+        <span style="flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600">${r.display_name||r.job_id}</span>
+        <span style="color:var(--muted);min-width:40px;text-align:right">${dur}</span>
+        ${preview?`<span style="color:var(--muted);max-width:260px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${preview}</span>`:''}
+      </div>`;
+    }).join('');
+  } catch(e) {
+    el.innerHTML=`<div style="color:var(--red);padding:12px">Failed to load log: ${e.message}</div>`;
+  }
+}
+
+async function apiFetch(method,path,body){
+  const r=await fetch(`${API}${path}`,{method,headers:{'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined});
+  if(!r.ok) throw new Error(`${method} ${path} \u2192 ${r.status}`);
+  return r.json().catch(()=>({}));
+}
+
+/* ================================================================
+   MONEYPENNY STATUS (Feature 10)
+================================================================ */
+async function checkMp() {
+  try {
+    const c = new AbortController();
+    const t = setTimeout(() => c.abort(), 4000);
+    const r = await fetch(`${API}/health/moneypenny`, {signal: c.signal});
+    clearTimeout(t);
+    const data = await r.json();
+    mpOnline = data.online;
+  } catch {
+    mpOnline = false;
+  }
+  renderMpIndicator();
+}
+
+function renderMpIndicator() {
+  const dot = document.getElementById('mp-dot');
+  const label = document.getElementById('mp-label');
+  const tip = document.getElementById('mp-tip-content');
+  if (mpOnline === null) {
+    dot.style.background = 'var(--yellow)';
+    label.textContent = 'MP: Unknown';
+    tip.innerHTML = 'Could not determine status (CORS)';
+  } else if (mpOnline) {
+    dot.style.background = 'var(--green)';
+    label.textContent = 'MP: Online';
+    const pt = {1:'Starter',2:'Standard',3:'Pro'}[tenant.moneypenny_power]||'Unknown';
+    tip.innerHTML = `<div style="color:var(--green);margin-bottom:6px">\u2705 Moneypenny is running</div>
+      <div>Power: <strong>\u26A1 ${tenant.moneypenny_power} \u2014 ${pt}</strong></div>`;
+  } else {
+    dot.style.background = 'var(--red)';
+    label.textContent = 'MP: Offline';
+    tip.innerHTML = `<div style="color:var(--red);margin-bottom:6px">\u{1F534} Moneypenny is not responding</div>`;
+  }
+}
+
+function toggleMpTip() {
+  document.getElementById('mp-indicator').classList.toggle('show-tip');
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('.mp-indicator')) document.getElementById('mp-indicator')?.classList.remove('show-tip');
+});
+
+/* ================================================================
+   LANDING (Feature 13 — extra stats)
+================================================================ */
+function renderLanding(){
+  const familyName=tenant.owner==='Rotem'?'The Ben-Israel Family':`The ${tenant.owner} Family`;
+  document.getElementById('landing-name').textContent=familyName;
+  if(jobs.length>0) document.getElementById('ls-jobs').textContent=jobs.length;
+  if(jobs.length>0) document.getElementById('ls-on').textContent=jobs.filter(j=>isOn(j)).length;
+  if(family.length>0) document.getElementById('ls-members').textContent=family.length;
+  document.getElementById('landing-avatars').innerHTML=family.map(p=>`
+    <div class="fav" style="background:${p.color}22;border-color:${p.color}44" title="${p.name}">${p.emoji}</div>
+  `).join('');
+
+  // Feature 13: Extra stats
+  const extra = [];
+  if (jobs.length > 0) {
+    // Most automated person
+    const counts = {};
+    family.forEach(p => { counts[p.id] = jobs.filter(j => personOf(j) === p.id).length; });
+    const topPerson = Object.entries(counts).sort((a,b) => b[1]-a[1])[0];
+    if (topPerson) {
+      const tp = family.find(f => f.id === topPerson[0]);
+      if (tp) extra.push(`<div class="fxs">\u{1F451} Most automated: <strong>${tp.name} (${topPerson[1]} jobs)</strong></div>`);
+    }
+    // Next job fires
+    const upcoming = jobs.filter(j => isOn(j) && j.next_run && new Date(j.next_run) > Date.now())
+      .sort((a,b) => new Date(a.next_run) - new Date(b.next_run));
+    if (upcoming[0]) {
+      extra.push(`<div class="fxs">\u23F3 Next job fires: <strong>${relTime(upcoming[0].next_run)}</strong></div>`);
+    }
+    // Last active
+    const withLastRun = jobs.filter(j => j.last_run || (j.next_run && new Date(j.next_run) < Date.now()));
+    if (withLastRun.length) {
+      const sorted = [...withLastRun].sort((a,b) => {
+        const ta = new Date(a.last_run || a.next_run);
+        const tb = new Date(b.last_run || b.next_run);
+        return tb - ta;
+      });
+      extra.push(`<div class="fxs">\u{1F3C3} Last active: <strong>${labelOf(sorted[0].name)}</strong></div>`);
+    }
+  }
+  document.getElementById('landing-extra').innerHTML = extra.join('');
+}
+
+function enterPortal(){
+  document.getElementById('landing').style.display='none';
+  document.getElementById('dashboard').style.display='flex';
+  renderDashboard();
+}
+function goHome(){
+  document.getElementById('dashboard').style.display='none';
+  document.getElementById('landing').style.display='flex';
+}
+
+/* ================================================================
+   DASHBOARD
+================================================================ */
+function renderDashboard(){
+  renderHeader();
+  renderSectionNav();
+  renderTabs();
+  document.getElementById('main').classList.toggle('timeline-mode', activeSection === 'timeline');
+  renderContent();
+}
+
+function renderHeader(){
+  const en=jobs.filter(j=>isOn(j));
+  document.getElementById('hdr-sub').textContent=`${tenant.jarvis_name} \u00B7 ${tenant.owner}'s Home`;
+  document.getElementById('hs-jobs').textContent=jobs.length;
+  document.getElementById('hs-on').textContent=en.length;
+  const up=en.filter(j=>j.next_run&&new Date(j.next_run)>Date.now()).sort((a,b)=>new Date(a.next_run)-new Date(b.next_run));
+  if(up[0]){document.getElementById('hs-next').textContent=`Next: ${relTime(up[0].next_run)}`;document.getElementById('hs-next-wrap').style.display='';}
+}
+
+/* Feature 1: Section Nav */
+function renderSectionNav() {
+  const sections = [
+    {id:'family',icon:'\u{1F468}\u200D\u{1F469}\u200D\u{1F467}',name:'Family'},
+    {id:'activity',icon:'\u{1F4CA}',name:'Activity'},
+    {id:'capabilities',icon:'\u2728',name:'Capabilities'},
+    {id:'timeline',icon:'\u{1F4C5}',name:'Timeline'},
+  ];
+  document.getElementById('section-nav').innerHTML = sections.map(s =>
+    `<button class="stab${activeSection===s.id?' active':''}" onclick="switchSection('${s.id}')">${s.icon} ${s.name}</button>`
+  ).join('');
+}
+
+function switchSection(id) {
+  activeSection = id;
+  document.getElementById('main').classList.toggle('timeline-mode', id === 'timeline');
+  renderSectionNav();
+  renderTabs();
+  renderContent();
+}
+
+function renderTabs(){
+  const nav = document.getElementById('person-nav');
+  if (activeSection !== 'family' && activeSection !== 'activity') {
+    nav.style.display = 'none';
+    return;
+  }
+  nav.style.display = 'flex';
+  const sc=jobs.filter(j=>personOf(j)==='system').length;
+  const allTab = `<button class="ptab${activePerson==='all'?' active':''}" style="--pc:#6e7681" onclick="switchTo('all')">
+    🌐 All<span class="pcnt">${jobs.length}</span>
+  </button>`;
+  nav.innerHTML=allTab+family.map(p=>{
+    const cnt=jobs.filter(j=>personOf(j)===p.id).length;
+    const hc = healthDotColor(p);
+    const hColors = {green:'var(--green)',yellow:'var(--yellow)',red:'var(--red)'};
+    const vacBadge = isVacation(p) ? '<span class="vacation-badge">\u{1F334}</span>' : '';
+    return`<button class="ptab${activePerson===p.id?' active':''}" style="--pc:${p.color}" onclick="switchTo('${p.id}')">
+      <span class="pdot" style="background:${p.color}"></span>
+      <span class="health-dot" style="background:${hColors[hc]||hColors.green}"></span>
+      ${p.emoji} ${p.name}${vacBadge}${cnt?`<span class="pcnt">${cnt}</span>`:''}
+    </button>`;
+  }).join('')+
+  `<button class="ptab${activePerson==='system'?' active':''}" style="--pc:#6e7681" onclick="switchTo('system')">
+    \u2699\uFE0F System${sc?`<span class="pcnt">${sc}</span>`:''}
+  </button>
+  <button class="ptab-add" onclick="openAddPerson()" title="Add person">\uFF0B</button>`;
+}
+
+function switchTo(id){activePerson=id;renderTabs();renderContent();}
+
+function renderContent() {
+  const m = document.getElementById('main');
+  switch(activeSection) {
+    case 'family': renderFamilyView(m); break;
+    case 'activity': renderActivityView(m); break;
+    case 'capabilities': renderCapabilitiesView(m); break;
+    case 'timeline': renderTimelineView(m); break;
+  }
+}
+
+/* ================================================================
+   FAMILY VIEW
+================================================================ */
+function renderFamilyView(m) {
+  if (activePerson === 'system') { m.innerHTML = renderSystem(); loadSysLog(); return; }
+  if (activePerson === 'all') {
+    // Show overview of all family members
+    m.innerHTML = family.filter(p => p.id !== 'noya' || true).map(p => {
+      const pJobs = jobs.filter(j => personOf(j) === p.id);
+      const activeJobs = pJobs.filter(j => isOn(j)).length;
+      return `<div style="background:var(--surface);border:1px solid var(--border);border-left:4px solid ${p.color};border-radius:14px;padding:18px 22px;margin-bottom:14px;display:flex;align-items:center;gap:16px;cursor:pointer" onclick="switchTo('${p.id}')">
+        <div style="font-size:36px;width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:${p.color}20">${p.emoji}</div>
+        <div style="flex:1">
+          <div style="font-size:20px;font-weight:800;color:${p.color}">${p.name}</div>
+          <div style="font-size:14px;color:var(--muted)">${p.relation} · ${pJobs.length} automation${pJobs.length!==1?'s':''}, ${activeJobs} active</div>
+        </div>
+        <div style="font-size:14px;color:var(--muted)">→</div>
+      </div>`;
+    }).join('');
+    return;
+  }
+  const p = family.find(f => f.id === activePerson);
+  if (!p) { m.innerHTML = '<p style="color:var(--muted);padding:40px">Person not found.</p>'; return; }
+  m.innerHTML = renderTodayPanel(p) + renderProfile(p) + renderQuickActions(p) + renderInlineCompose(p) + renderSettings(p) + renderAgents(p);
+}
+
+/* ── Profile ── */
+function renderProfile(p){
+  const tierBtns=TIERS.map(t=>`
+    <button class="tier-btn${p.contact_tier===t.t?' active':''}" data-tier="${t.t}"
+      style="--tc:${t.color}" title="${t.desc}" onclick="setTier('${p.id}',${t.t})">
+      <span class="ticon">${t.icon}</span><span class="tname">${t.name}</span>
+    </button>`).join('');
+
+  const pJobs = jobs.filter(j => personOf(j) === p.id);
+  const health = computeHealth(p, pJobs);
+  const healthHtml = health.issues.length ? `<div class="health-bar">${health.issues.map(i =>
+    `<div class="health-issue ${i.level}">
+      ${i.level==='error'?'\u{1F534}':'\u26A0\uFE0F'} ${i.msg}
+      ${i.fix ? `<button class="hi-btn" onclick="openEditPerson('${p.id}')">Fix \u2192</button>` : ''}
+    </div>`
+  ).join('')}</div>` : '';
+
+  const vacHtml = isVacation(p) ? `<div class="vacation-banner">
+    \u{1F334} On vacation until ${new Date(p.vacation_until).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}
+    <button class="btn btn-sm vac-end" onclick="endVacation('${p.id}')">End Early</button>
+  </div>` : '';
+
+  const vacBtn = isVacation(p)
+    ? `<button class="btn-vacation active" onclick="endVacation('${p.id}')">\u{1F334} On Vacation</button>`
+    : `<button class="btn-vacation" onclick="openVacation('${p.id}')">\u{1F334} Vacation Mode</button>`;
+
+  return`<div class="profile-card" style="--pc:${p.color};--pc-a:${p.color}20">
+    <div class="avatar-lg" style="background:${p.color}20;border-color:${p.color}44">${p.emoji}</div>
+    <div class="profile-body">
+      <div class="profile-name" style="color:${p.color}">${p.name}</div>
+      <div class="profile-rel">${p.relation}</div>
+      ${coverageBadge(p)}
+      ${vacHtml}
+      ${healthHtml}
+      <div class="tier-label">Contact Permission \u2014 what Jarvis is allowed to do with ${p.name}</div>
+      <div class="tier-row">${tierBtns}</div>
+      <div class="blocked-warn${p.contact_tier===0?' show':''}" id="bw-${p.id}">
+        \u{1F6AB} Jarvis cannot contact ${p.name} under any circumstances. Enforced at the server level.
+      </div>
+    </div>
+    <div class="profile-actions">
+      ${vacBtn}
+      <button class="btn btn-ghost btn-sm" onclick="openEditPerson('${p.id}')">\u270F Edit Profile</button>
+    </div>
+  </div>`;
+}
+
+/* ── Quick Actions (Feature 8) ── */
+function renderQuickActions(p) {
+  if (p.contact_tier === 0) return '';
+  const actions = [
+    {icon:'\u{1F4AC}',label:'Send Message',action:`qaMessage('${p.id}')`},
+  ];
+  if (tenant.moneypenny_power >= 3) {
+    actions.push({icon:'\u{1F4DE}',label:'Call Now',action:`qaCall('${p.id}')`});
+  }
+  actions.push(
+    {icon:'\u{1F4E7}',label:'Check Email',action:`qaEmail('${p.id}')`},
+    {icon:'\u{1F4C5}',label:'Check Calendar',action:`qaCalendar('${p.id}')`},
+    {icon:'\u{1F504}',label:'Run All',action:`qaRunAll('${p.id}')`},
+  );
+  return `<div class="quick-actions" style="--pc:${p.color};--pc-a:${p.color}15">${actions.map(a =>
+    `<div class="qa-btn" onclick="${a.action}"><span class="qa-icon">${a.icon}</span><span class="qa-label">${a.label}</span></div>`
+  ).join('')}</div>`;
+}
+
+function qaMessage(pid) {
+  const p = family.find(f=>f.id===pid);
+  const channels = [
+    {id:'whatsapp', icon:'💬', label:'WhatsApp', val: p?.whatsapp||p?.phone},
+    {id:'telegram', icon:'✈️', label:'Telegram', val: p?.telegram},
+    {id:'email',    icon:'📧', label:'Email',    val: p?.email},
+  ].filter(c => c.val);
+  const def = channels.find(c=>c.id===p?.preferred_channel) ? p.preferred_channel : channels[0]?.id || 'whatsapp';
+  const channelBtns = channels.map(c=>`
+    <button id="qa-ch-${c.id}" onclick="qaSelectChannel('${c.id}')"
+      style="padding:8px 16px;border-radius:8px;border:2px solid ${c.id===def?'var(--accent)':'var(--border)'};
+             background:${c.id===def?'rgba(88,166,255,.1)':'var(--surface2)'};
+             color:${c.id===def?'var(--accent)':'var(--muted)'};font-size:15px;cursor:pointer;transition:all .15s">
+      ${c.icon} ${c.label}
+    </button>`).join('');
+  document.getElementById('qa-title').textContent = 'Send Message \u2192 ' + (p?.name||pid);
+  document.getElementById('qa-body').innerHTML = `
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">${channelBtns}</div>
+    <textarea id="qa-msg-input" placeholder="What should Jarvis say?"
+      style="width:100%;min-height:80px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:16px;padding:12px;resize:vertical;box-sizing:border-box;font-family:inherit"></textarea>
+    <div style="margin-top:14px;display:flex;gap:8px;justify-content:flex-end">
+      <button onclick="closeModal('qa-modal')" style="padding:10px 20px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);font-size:15px;cursor:pointer">Cancel</button>
+      <button onclick="qaSendMessage('${pid}')" style="padding:10px 24px;border-radius:8px;border:none;background:var(--accent);color:#000;font-size:15px;font-weight:700;cursor:pointer">Send \u2192</button>
+    </div>`;
+  document.getElementById('qa-body').dataset.channel = def;
+  openModal('qa-modal');
+}
+function qaSelectChannel(ch) {
+  const body = document.getElementById('qa-body');
+  body.dataset.channel = ch;
+  body.querySelectorAll('[id^="qa-ch-"]').forEach(btn => {
+    const active = btn.id === `qa-ch-${ch}`;
+    btn.style.borderColor = active ? 'var(--accent)' : 'var(--border)';
+    btn.style.background  = active ? 'rgba(88,166,255,.1)' : 'var(--surface2)';
+    btn.style.color       = active ? 'var(--accent)' : 'var(--muted)';
+  });
+}
+async function qaSendMessage(pid) {
+  const p = family.find(f=>f.id===pid);
+  const msg = document.getElementById('qa-msg-input')?.value?.trim();
+  const channel = document.getElementById('qa-body')?.dataset?.channel || p?.preferred_channel || 'whatsapp';
+  if (!msg) { toast('Type a message first','error'); return; }
+  try {
+    await apiFetch('POST','/proxy/contact',{action:'text',contact:p?.name||pid,channel,message:msg});
+    closeModal('qa-modal');
+    toast(`Message sent to ${p?.name||pid} via ${channel} \u2713`,'success');
+  } catch { toast('Send failed \u2014 check Moneypenny is running','error'); }
+}
+function qaCall(pid) {
+  const p = family.find(f=>f.id===pid);
+  document.getElementById('qa-title').textContent = 'Call ' + (p?.name||pid);
+  document.getElementById('qa-body').innerHTML = `
+    <div style="margin-bottom:12px;color:var(--muted);font-size:15px">Jarvis will call <strong style="color:var(--text)">${p?.name||pid}</strong> now using Moneypenny voice.</div>
+    <textarea id="qa-call-input" placeholder="Message for the call"
+      style="width:100%;min-height:60px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:16px;padding:12px;resize:vertical;box-sizing:border-box;font-family:inherit">Calling from Jarvis.</textarea>
+    <div style="margin-top:14px;display:flex;gap:8px;justify-content:flex-end">
+      <button onclick="closeModal('qa-modal')" style="padding:10px 20px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);font-size:15px;cursor:pointer">Cancel</button>
+      <button onclick="qaDoCall('${pid}')" style="padding:10px 24px;border-radius:8px;border:none;background:#3fb950;color:#000;font-size:15px;font-weight:700;cursor:pointer">\u{1F4DE} Call Now</button>
+    </div>`;
+  openModal('qa-modal');
+}
+async function qaDoCall(pid) {
+  const p = family.find(f=>f.id===pid);
+  const msg = document.getElementById('qa-call-input')?.value?.trim()||'Calling from Jarvis.';
+  try {
+    await apiFetch('POST','/proxy/contact',{action:'call',contact:p?.name||pid,message:msg});
+    closeModal('qa-modal');
+    toast(`Calling ${p?.name||pid}\u2026 \u2713`,'success');
+  } catch { toast('Call failed \u2014 check Moneypenny is running','error'); }
+}
+function qaEmail(pid) {
+  const p = family.find(f=>f.id===pid);
+  document.getElementById('qa-title').textContent = 'Check Email \u2014 ' + (p?.name||pid);
+  document.getElementById('qa-body').innerHTML = `<div id="qa-email-result" style="font-size:15px;color:var(--muted)">Fetching emails\u2026</div>`;
+  openModal('qa-modal');
+  apiFetch('POST','/proxy/check_email',{action:'list',account:p?.name||pid,count:10})
+    .then(r => {
+      const el = document.getElementById('qa-email-result');
+      if (!el) return;
+      const emails = Array.isArray(r) ? r : r?.emails || r?.messages || [];
+      if (emails.length) {
+        el.innerHTML = emails.slice(0,5).map(e =>
+          `<div style="padding:10px 0;border-bottom:1px solid var(--border)"><strong>${e.subject||'(no subject)'}</strong><br><span style="color:var(--muted);font-size:13px">From: ${e.from||e.sender||'?'}</span></div>`
+        ).join('');
+      } else {
+        el.innerHTML = `<pre style="font-size:12px;white-space:pre-wrap;color:var(--muted)">${JSON.stringify(r,null,2)}</pre>`;
+      }
+    })
+    .catch(() => {
+      const el = document.getElementById('qa-email-result');
+      if (el) el.innerHTML = '<div style="color:var(--red)">Failed \u2014 check Moneypenny is running</div>';
+    });
+}
+function qaCalendar(pid) {
+  const p = family.find(f=>f.id===pid);
+  document.getElementById('qa-title').textContent = 'Calendar \u2014 ' + (p?.name||pid);
+  document.getElementById('qa-body').innerHTML = `<div id="qa-cal-result" style="font-size:15px;color:var(--muted)">Fetching today\u2019s calendar\u2026</div>`;
+  openModal('qa-modal');
+  apiFetch('POST','/proxy/check_calendar',{account:p?.name||pid,query:'today'})
+    .then(r => {
+      const el = document.getElementById('qa-cal-result');
+      if (!el) return;
+      const events = Array.isArray(r) ? r : r?.events || [];
+      if (events.length) {
+        el.innerHTML = events.map(e =>
+          `<div style="padding:10px 0;border-bottom:1px solid var(--border)"><strong>${e.title||e.summary||'Event'}</strong><br><span style="color:var(--muted);font-size:13px">${e.time||e.start||''}</span></div>`
+        ).join('');
+      } else {
+        el.innerHTML = `<pre style="font-size:12px;white-space:pre-wrap;color:var(--muted)">${JSON.stringify(r,null,2)}</pre>`;
+      }
+    })
+    .catch(() => {
+      const el = document.getElementById('qa-cal-result');
+      if (el) el.innerHTML = '<div style="color:var(--red)">Failed \u2014 check Moneypenny is running</div>';
+    });
+}
+async function qaRunAll(pid) {
+  const pJobs = jobs.filter(j => personOf(j) === pid && isOn(j));
+  if (!pJobs.length) { toast('No active jobs to run', 'error'); return; }
+  const pName = pid === 'system' ? 'System' : family.find(f=>f.id===pid)?.name || pid;
+  const jobList = pJobs.slice(0,5).map(j=>`• ${labelOf(j.name)}`).join('\n');
+  const extra = pJobs.length > 5 ? `\n• ...and ${pJobs.length-5} more` : '';
+  if (!confirm(`Run all ${pJobs.length} active jobs for ${pName}?\n\n${jobList}${extra}`)) return;
+  try {
+    await Promise.all(pJobs.map(j => fetch(`${API}/jobs/${j.id}/run`, {method:'POST'})));
+    toast(`Triggered ${pJobs.length} job${pJobs.length>1?'s':''} \u25B6`, 'success');
+  } catch { toast('Some jobs failed to trigger', 'error'); }
+}
+function showQaModal(title, body) {
+  document.getElementById('qa-title').textContent = title;
+  document.getElementById('qa-body').innerHTML = body;
+  openModal('qa-modal');
+}
+function copyQa(btn) {
+  const box = btn.parentElement;
+  const text = box.textContent.replace('Copy','').trim();
+  navigator.clipboard.writeText(text).then(() => { btn.textContent = 'Copied!'; setTimeout(()=>btn.textContent='Copy',1500); });
+}
+
+/* ── Settings ── */
+function renderSettings(p){
+  const presets=PERSONALITIES.map(pr=>`
+    <div class="preset-card${p.jarvis_personality===pr.id?' active':''}"
+      style="${p.jarvis_personality===pr.id?`--pc:${p.color}`:''}"
+      onclick="setPersonality('${p.id}','${pr.id}')">
+      <div class="preset-icon">${pr.icon}</div>
+      <div class="preset-name">${pr.name}</div>
+      <div class="preset-desc">${pr.desc}</div>
+    </div>`).join('');
+  const langs=['en','he','both'].map(l=>`
+    <button class="lang-btn${p.language===l?' active':''}"
+      style="${p.language===l?`--pc:${p.color}`:''}"
+      onclick="setLang('${p.id}','${l}')">
+      ${{en:'\u{1F1FA}\u{1F1F8} English',he:'\u{1F1EE}\u{1F1F1} Hebrew',both:'Both'}[l]}
+    </button>`).join('');
+  const cfs=[
+    {icon:'\u{1F4F1}',lbl:'Phone',val:p.phone},
+    {icon:'\u{1F4AC}',lbl:'WhatsApp',val:p.whatsapp},
+    {icon:'\u{1F4E7}',lbl:'Email',val:p.email},
+    {icon:'\u2708\uFE0F',lbl:'Telegram',val:p.telegram},
+  ].map(f=>`<div class="cf-row">
+    <span class="cf-icon">${f.icon}</span>
+    <span class="cf-lbl">${f.lbl}</span>
+    <span class="cf-val${!f.val?' empty':''}">${f.val||'Not set \u2014 click Edit Profile'}</span>
+  </div>`).join('');
+  return`<div class="settings-grid">
+    <div class="settings-card">
+      <div class="card-title">Jarvis Personality for ${p.name}</div>
+      <div class="preset-grid">${presets}</div>
+      <div class="lang-row">${langs}</div>
+      <div class="custom-tone-box" id="custom-tone-${p.id}" style="margin-top:14px">
+        <div style="font-size:13px;font-weight:700;color:var(--muted);margin-bottom:6px">✏️ Your own twist <span style="font-weight:400">(adds on top of the preset above)</span></div>
+        <textarea id="custom-tone-text-${p.id}"
+          placeholder="e.g. 'Always open with the weather' · 'Keep every message under 3 sentences' · 'Reference football when motivating'"
+          style="min-height:72px"
+        >${p.jarvis_personality_custom||''}</textarea>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button class="btn btn-primary btn-sm" onclick="saveCustomTone('${p.id}')">Save tone</button>
+          ${p.jarvis_personality_custom?`<button class="btn btn-ghost btn-sm" onclick="clearCustomTone('${p.id}')">Clear</button>`:''}
+        </div>
+      </div>
+    </div>
+    <div class="settings-card">
+      <div class="card-title">How to Reach ${p.name}</div>
+      ${cfs}
+      <div class="quiet-row">
+        \u{1F319} Quiet hours: <strong>${fmt12(p.quiet_hours?.start||'22:00')} \u2013 ${fmt12(p.quiet_hours?.end||'07:00')}</strong>
+        <button class="btn btn-ghost btn-sm" style="margin-left:auto" onclick="openEditPerson('${p.id}')">Edit</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ── Agents (Feature 9 + 12) ── */
+function renderAgents(p){
+  const pj=jobs.filter(j=>personOf(j)===p.id);
+  const grp={};
+  pj.forEach(j=>{const a=agentOf(j);if(!grp[a])grp[a]=[];grp[a].push(j);});
+  const cards=Object.entries(grp).map(([aid,jbs])=>{
+    const at=AGENT_TYPES.find(a=>a.id===aid)||{id:aid,icon:'\u26A1',name:aid,desc:''};
+    return renderAgentCard(at,jbs,p.id,p.color);
+  }).join('');
+  return`<div>
+    <div class="agents-hdr">
+      <div>
+        <div class="agents-title">${p.name}'s Agents</div>
+        <div class="agents-sub">${pj.length} automation${pj.length!==1?'s':''} \u00B7 ${pj.filter(j=>isOn(j)).length} active</div>
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="openAddAgent('${p.id}')">\uFF0B Add Agent</button>
+    </div>
+    <div class="agents-grid">
+      ${cards}
+      <div class="add-agent-card" onclick="openAddAgent('${p.id}')">
+        <div class="add-icon">\uFF0B</div>
+        <div class="add-lbl">Add Agent</div>
+        <div class="add-sub">Morning chaos, fitness, bedtime\u2026</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderAgentCard(at,jbs,pid,pcolor){
+  const allOn=jbs.every(j=>isOn(j));
+  const vac = family.find(f=>f.id===pid);
+  const onVacation = vac && isVacation(vac);
+  const rows=jbs.map(j=>{
+    const cd = countdownStr(j);
+    const ch = channelOf(j);
+    const statusDot = j.status==='failed' ? 'var(--red)' : (j.last_run || (j.next_run && new Date(j.next_run) < Date.now())) ? 'var(--green)' : 'var(--muted)';
+    const lastRun = j.last_run ? relTime(j.last_run) : (j.next_run && new Date(j.next_run) < Date.now()) ? relTime(j.next_run) : '';
+    return`<div class="job-row">
+      <span class="job-dot" style="background:${statusDot}"></span>
+      <span class="job-name">${labelOf(j.name)}</span>
+      <span title="${ch.label}" style="font-size:13px;opacity:.7">${ch.icon}</span>
+      ${sparkline(j.id, j.schedule_value)}
+      ${lastRun ? `<span class="job-last-run">Ran ${lastRun}</span>` : ''}
+      <span class="job-sched">${cronDesc(j.schedule_value||'')}</span>
+      <span class="job-countdown ${cd.cls}" data-next="${j.next_run||''}" data-enabled="${isOn(j)?1:0}">${cd.text}</span>
+      ${onVacation && isOn(j) ? '<span class="job-paused">paused</span>' : ''}
+      <span class="badge badge-${j.status==='failed'?'failed':isOn(j)?'on':'off'}" style="margin-right:4px">${j.status==='failed'?'Failed':isOn(j)?'On':'Off'}</span>
+      <div class="job-acts">
+        <button class="btn btn-icon btn-ghost" title="Run now" onclick="runJob('${j.id}')">\u25B6</button>
+        <button class="btn btn-icon btn-ghost" title="Edit" onclick="openEditJob('${j.id}')">\u270F</button>
+      </div>
+    </div>`;
+  }).join('');
+  return`<div class="agent-card" id="ac-${at.id}-${pid}">
+    <div class="agent-card-hdr" onclick="toggleCard('${at.id}','${pid}')">
+      <div class="agent-icon">${at.icon}</div>
+      <div class="agent-info">
+        <div class="agent-name">${at.name}</div>
+        <div class="agent-desc">${at.desc}</div>
+      </div>
+      <div class="agent-meta">
+        <span class="agent-cnt">${jbs.length} job${jbs.length!==1?'s':''}</span>
+        <label class="tog" onclick="event.stopPropagation()">
+          <input type="checkbox" ${allOn?'checked':''} onchange="toggleAgent('${at.id}','${pid}',this.checked)">
+          <span class="tog-s"></span>
+        </label>
+        <span class="agent-chevron">\u25BC</span>
+      </div>
+    </div>
+    <div class="agent-jobs">
+      ${rows}
+      <div class="agent-footer">
+        <button class="btn btn-ghost btn-sm" onclick="openAddJob('${pid}','${at.id}')">\uFF0B Add automation</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ── System view ── */
+function renderSystem(){
+  const sj=jobs.filter(j=>personOf(j)==='system');
+  const grp={};
+  sj.forEach(j=>{const a=agentOf(j);if(!grp[a])grp[a]=[];grp[a].push(j);});
+  const pt={1:'Starter',2:'Standard',3:'Pro'}[tenant.moneypenny_power]||'Pro';
+  const cards=Object.entries(grp).map(([aid,jbs])=>{
+    const at=AGENT_TYPES.find(a=>a.id===aid)||{id:aid,icon:'\u2699\uFE0F',name:aid,desc:''};
+    return renderAgentCard(at,jbs,'system','#6e7681');
+  }).join('');
+  return`<div class="sys-card">
+    <div class="card-title" style="margin-bottom:14px">Tenant Configuration</div>
+    <div class="sys-row"><span class="sys-lbl">Jarvis Name</span><span class="sys-val">${tenant.jarvis_name}</span></div>
+    <div class="sys-row"><span class="sys-lbl">Owner</span><span class="sys-val">${tenant.owner}</span></div>
+    <div class="sys-row"><span class="sys-lbl">Moneypenny Power</span><span class="sys-val"><span class="power-badge">\u26A1 Power ${tenant.moneypenny_power} \u2014 ${pt}</span></span></div>
+    <div class="sys-row"><span class="sys-lbl">Timezone</span><span class="sys-val">${tenant.timezone}</span></div>
+    <div class="sys-row" style="align-items:center;gap:8px">
+      <span class="sys-lbl">Weather Location</span>
+      <input id="weather-loc-input" type="text" value="${(tenant.weather_location||'').replace(/"/g,'&quot;')}"
+        placeholder="City, State ZIP or ZIP code"
+        style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:5px 10px;color:var(--fg);font-size:13px;min-width:0"
+        onkeydown="if(event.key==='Enter')saveTenantWeather()"
+      />
+      <button class="btn btn-sm" style="white-space:nowrap" onclick="saveTenantWeather()">Save</button>
+    </div>
+    <div class="sys-row"><span class="sys-lbl">Tenant ID</span><span class="sys-val" style="font-family:monospace;font-size:14px;color:var(--muted)">${tenant.tenant_id}</span></div>
+  </div>
+  <div>
+    <div class="agents-hdr">
+      <div><div class="agents-title">System Agents</div><div class="agents-sub">${sj.length} system automation${sj.length!==1?'s':''}</div></div>
+      <button class="btn btn-primary btn-sm" onclick="openAddAgent('system')">\uFF0B Add Agent</button>
+    </div>
+    <div class="agents-grid">
+      ${cards}
+      <div class="add-agent-card" onclick="openAddAgent('system')">
+        <div class="add-icon">\uFF0B</div><div class="add-lbl">Add System Agent</div>
+        <div class="add-sub">Backups, research, homelab monitoring</div>
+      </div>
+    </div>
+  </div>
+  <div style="margin-top:28px">
+    <div class="agents-hdr">
+      <div><div class="agents-title">System Log</div><div class="agents-sub" id="syslog-sub">Loading…</div></div>
+      <button class="btn btn-ghost btn-sm" onclick="loadSysLog()">↻ Refresh</button>
+    </div>
+    <div id="syslog-list" style="font-family:monospace;font-size:13px"></div>
+  </div>`;
+}
+
+/* ================================================================
+   ACTIVITY VIEW (Feature 4)
+================================================================ */
+function renderActivityView(m) {
+  const filterPid = activePerson === 'system' ? 'system' : activePerson;
+  let filtered = jobs;
+  if (filterPid === 'all') {
+    // Show all jobs sorted by next_run
+    filtered = [...jobs].sort((a,b) => new Date(a.next_run||0) - new Date(b.next_run||0));
+  } else {
+    filtered = jobs.filter(j => personOf(j) === filterPid);
+  }
+
+  // Sort by most recently active
+  filtered.sort((a,b) => {
+    const ta = new Date(a.last_run || a.next_run || 0);
+    const tb = new Date(b.last_run || b.next_run || 0);
+    return tb - ta;
+  });
+
+  if (!filtered.length) {
+    m.innerHTML = `<div class="activity-empty">\u{1F916} No activity yet \u2014 Jarvis is standing by</div>`;
+    return;
+  }
+
+  const rows = filtered.map(j => {
+    const pid = personOf(j);
+    const p = family.find(f => f.id === pid);
+    const color = p?.color || '#6e7681';
+    const emoji = p?.emoji || '\u2699\uFE0F';
+    const cd = countdownStr(j);
+    const lastRun = j.last_run ? relTime(j.last_run) : (j.next_run && new Date(j.next_run) < Date.now()) ? 'Ran ' + relTime(j.next_run) : 'Never';
+    const statusBadge = j.status === 'failed' ? '<span class="badge badge-failed">Failed</span>' : isOn(j) ? '<span class="badge badge-on">On</span>' : '<span class="badge badge-off">Off</span>';
+
+    return `<div class="activity-row">
+      <div class="act-person" style="background:${color}22;border:1px solid ${color}44">${emoji}</div>
+      <div class="act-info">
+        <div class="act-name">${labelOf(j.name)}</div>
+        <div class="act-desc">${cronDesc(j.schedule_value||'')}${p ? ` \u00B7 ${p.name}` : ''}</div>
+      </div>
+      <div class="act-time">
+        <div class="act-last">${lastRun}</div>
+        <div class="act-next job-countdown ${cd.cls}" data-next="${j.next_run||''}" data-enabled="${isOn(j)?1:0}">${cd.text}</div>
+      </div>
+      <div class="act-status">${statusBadge}</div>
+      <button class="btn btn-sm btn-ghost" onclick="runJob('${j.id}')" title="Run now">\u25B6</button>
+    </div>`;
+  }).join('');
+
+  m.innerHTML = `<div style="margin-bottom:20px">
+    <div class="agents-title">Activity Feed</div>
+    <div class="agents-sub">What Jarvis has been doing</div>
+  </div>${rows}`;
+}
+
+/* ================================================================
+   CAPABILITIES VIEW (Feature 3)
+================================================================ */
+function renderCapabilitiesView(m) {
+  const mp = tenant.moneypenny_power || 1;
+  const cards = CAPABILITIES.map(c => {
+    const locked = c.power > mp;
+    const pClass = `cap-power p${c.power}`;
+    return `<div class="cap-card${locked?' cap-locked':''}">
+      <div class="cap-icon">${c.icon}</div>
+      <div class="cap-name">${c.name}</div>
+      <div class="cap-desc">${c.desc}</div>
+      <span class="${pClass}">${locked?'\u{1F512} ':''}\u26A1 Power ${c.power}</span>
+    </div>`;
+  }).join('');
+
+  // Setup status
+  const rotem = family.find(f=>f.id==='rotem');
+  const setupItems = [
+    {icon:'\u2708\uFE0F',name:'Telegram',status: rotem?.telegram ? `\u2705 Connected: ${rotem.telegram}` : '\u26A0\uFE0F Not configured',ok:!!rotem?.telegram},
+    {icon:'\u{1F4AC}',name:'WhatsApp',status: '\u2705 Connected via NanoClaw',ok:true},
+    {icon:'\u{1F4E7}',name:'Email',status: rotem?.email ? '\u2705 Configured' : '\u26A0\uFE0F Family contact emails not set',ok:!!rotem?.email},
+    {icon:'\u{1F4DE}',name:'Voice Calls',status: mp >= 3 ? '\u2705 Power 3 \u2014 ElevenLabs ready' : `\u{1F512} Requires Power 3 (current: ${mp})`,ok:mp>=3},
+    {icon:'\u{1F3E0}',name:'Home Assistant',status: mp >= 3 ? '\u26A0\uFE0F Power 3 \u2014 needs configuration' : `\u{1F512} Requires Power 3`,ok:false},
+    {icon:'\u{1F9E0}',name:'Memory',status:'\u2705 Active \u2014 persistent across conversations',ok:true},
+    {icon:'\u23F0',name:'Automations',status:`\u2705 ${jobs.filter(j=>isOn(j)).length} active automations`,ok:true},
+    {icon:'\u{1F50D}',name:'Web Research',status: mp >= 2 ? '\u2705 Available' : `\u{1F512} Requires Power 2`,ok:mp>=2},
+  ];
+  const setupHtml = setupItems.map(s =>
+    `<div class="setup-row">
+      <span class="setup-icon">${s.icon}</span>
+      <span style="flex:1;font-weight:500">${s.name}</span>
+      <span style="font-size:14px;color:${s.ok?'var(--green)':'var(--yellow)'}">${s.status}</span>
+    </div>`
+  ).join('');
+
+  // Power tier comparison
+  const tiers = [
+    {n:1,name:'Starter',tools:['Memory & recall','Read email','Read calendar','Automations']},
+    {n:2,name:'Standard',tools:['+ WhatsApp & Telegram','+ Send email','+ Web research','+ Spotify']},
+    {n:3,name:'Pro',tools:['+ Voice calls (ElevenLabs)','+ Home Assistant','+ Homelab shell','+ All tools unlocked']},
+  ];
+  const tierCols = tiers.map(t =>
+    `<div class="power-col${t.n===mp?' current':''}">
+      <div class="pc-tier">\u26A1 ${t.n}</div>
+      <div class="pc-name">${t.name}${t.n===mp?' \u2014 Current':''}</div>
+      <div class="pc-list">${t.tools.map(x=>`<div>${t.n<=mp?'\u2705':'\u{1F512}'} ${x}</div>`).join('')}</div>
+    </div>`
+  ).join('');
+
+  m.innerHTML = `
+    <div style="margin-bottom:24px">
+      <div class="agents-title">\u2728 What Jarvis Can Do</div>
+      <div class="agents-sub">All capabilities available at your current power tier</div>
+    </div>
+    <div class="cap-grid">${cards}</div>
+    <div style="margin-bottom:16px">
+      <div class="agents-title" style="font-size:20px">Your Setup</div>
+      <div class="agents-sub">What's connected and what needs attention</div>
+    </div>
+    <div class="setup-grid">${setupHtml}</div>
+    <div style="margin-bottom:16px">
+      <div class="agents-title" style="font-size:20px">Moneypenny Power Tiers</div>
+      <div class="agents-sub">What's unlocked at each level</div>
+    </div>
+    <div class="power-comparison">${tierCols}</div>`;
+}
+
+/* ================================================================
+   TIMELINE VIEW (Feature 5)
+================================================================ */
+function renderTimelineView(m) {
+  const prevTlScroll = document.getElementById('tl-wrap')?.scrollLeft;
+  const TRACK_W = 2400;
+  const PX_PER_MIN = TRACK_W / 1440;
+  const PILL_W = 68;
+
+  const activePeople = family.filter(p => p.id !== 'noya' && jobs.some(j => personOf(j) === p.id && isOn(j)));
+  const systemPseudo = {id:'system', name:'System', emoji:'⚙️', color:'#6e7681'};
+  const hasSystemJobs = jobs.some(j => personOf(j) === 'system' && isOn(j));
+  const allPeople = hasSystemJobs ? [...activePeople, systemPseudo] : activePeople;
+
+  const viewMode = timelineViewMode || 'list';
+  const toggleHtml = `<div class="timeline-controls">
+    <div class="tl-toggle">
+      <button class="${!timelineWeekend?'active':''}" onclick="timelineWeekend=false;renderContent()">Weekday</button>
+      <button class="${timelineWeekend?'active':''}" onclick="timelineWeekend=true;renderContent()">Weekend</button>
+    </div>
+    <span style="font-size:14px;color:var(--muted)">24-hour schedule — click any item to edit</span>
+    <div class="tl-toggle" style="margin-left:auto">
+      <button class="${viewMode==='timeline'?'active':''}" onclick="timelineViewMode='timeline';renderContent()">&#128202; Timeline</button>
+      <button class="${viewMode==='list'?'active':''}" onclick="timelineViewMode='list';renderContent()">&#128203; List</button>
+    </div>
+  </div>`;
+
+  if (!allPeople.length) {
+    m.innerHTML = `<div class="agents-title">\u{1F4C5} 24-Hour Timeline</div>${toggleHtml}<div class="activity-empty">No active automations to display on the timeline</div>`;
+    return;
+  }
+
+  // List view (VA-07)
+  if (viewMode === 'list') {
+    m.innerHTML = `
+      <div style="margin-bottom:20px">
+        <div class="agents-title">\uD83D\uDCC5 Daily Schedule</div>
+        <div class="agents-sub">All automations sorted by time of day</div>
+      </div>
+      ${toggleHtml}
+      <div style="max-width:800px">
+        ${renderTimelineList(allPeople, timelineWeekend)}
+      </div>`;
+    return;
+  }
+
+  const hourLabels = Array.from({length:24}, (_,h) =>
+    `<div class="tl-hour">${h===0?'12am':h<12?h+'am':h===12?'12pm':(h-12)+'pm'}</div>`
+  ).join('');
+
+  const nightShade = (s, e) =>
+    `<div class="tl-night" style="left:${Math.round(s*PX_PER_MIN)}px;width:${Math.round((e-s)*PX_PER_MIN)}px"></div>`;
+
+  const gridLines = Array.from({length:24}, (_,h) =>
+    `<div class="tl-gridline" style="left:${h*100}px"></div>`
+  ).join('');
+
+  const now = new Date();
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+  const nowPx = Math.round(nowMin * PX_PER_MIN);
+  const nowStr = now.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+
+  let personRows = '';
+  for (const p of allPeople) {
+    const pJobs = jobs.filter(j => personOf(j) === p.id && isOn(j));
+    const events = [];
+    for (const j of pJobs) {
+      for (const t of cronFireTimes(j.schedule_value||'', timelineWeekend)) {
+        events.push({t, j});
+      }
+    }
+    events.sort((a,b) => a.t - b.t);
+
+    // Assign vertical lanes to overlapping pills
+    const slots = [];
+    const placed = events.map(ev => {
+      const lx = Math.round(ev.t * PX_PER_MIN);
+      let lane = 0;
+      while (slots[lane] !== undefined && slots[lane] > lx - 4) lane++;
+      slots[lane] = lx + PILL_W;
+      return {...ev, lx, lane};
+    });
+
+    const maxLane = placed.length ? Math.max(...placed.map(a=>a.lane)) : 0;
+    const trackH = Math.max(40, (maxLane+1)*34 + 8);
+
+    const pills = placed.map(({lx, lane, j}) => {
+      const top = 4 + lane * 32;
+      const fullLabel = labelOf(j.name);
+      const lbl = fullLabel.substring(0,13);
+      return `<div class="tl-pill" style="left:${lx}px;top:${top}px;width:${PILL_W}px;background:${p.color}"
+        data-label="${fullLabel} \u2014 ${cronDesc(j.schedule_value||'')}"
+        onclick="openEditJob('${j.id}')"><span>${lbl}</span></div>`;
+    }).join('');
+
+    personRows += `<div class="tl-person-row" style="min-height:${trackH+16}px">
+      <div class="tl-person-label"><span style="font-size:18px">${p.emoji}</span>${p.name}</div>
+      <div class="tl-track" style="height:${trackH}px">
+        ${nightShade(0,420)}${nightShade(1320,1440)}
+        ${gridLines}
+        ${pills}
+        <div class="tl-now-line" style="left:${nowPx}px">
+          <div class="tl-now-label">${nowStr}</div>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  m.innerHTML = `
+    <div style="margin-bottom:20px">
+      <div class="agents-title">\uD83D\uDCC5 24-Hour Timeline</div>
+      <div class="agents-sub">Visual schedule of all automations \u2014 click any pill to edit</div>
+    </div>
+    ${toggleHtml}
+    <div class="timeline-outer">
+      <div class="timeline-wrap" id="tl-wrap">
+        <div class="timeline-grid">
+          <div class="tl-header">
+            <div class="tl-header-spacer"></div>
+            <div class="tl-hours">${hourLabels}</div>
+          </div>
+          ${personRows}
+        </div>
+      </div>
+    </div>`;
+
+  requestAnimationFrame(() => {
+    const wrap = document.getElementById('tl-wrap');
+    if (wrap) wrap.scrollLeft = prevTlScroll !== undefined && prevTlScroll > 0 ? prevTlScroll : Math.max(0, nowPx - 200);
+  });
+}
+
+/* ================================================================
+   INTERACTIONS
+================================================================ */
+function toggleCard(aid,pid){document.getElementById(`ac-${aid}-${pid}`)?.classList.toggle('open');}
+
+async function toggleAgent(aid,pid,on){
+  const list=jobs.filter(j=>personOf(j)===pid&&agentOf(j)===aid);
+  try{
+    await Promise.all(list.map(j=>apiFetch('PATCH',`/jobs/${j.id}`,{enabled:on})));
+    toast(`${aid} agent turned ${on?'on':'off'}`,'success');
+    await fetchAll();
+  }catch(e){toast('Update failed \u2014 try again','error');}
+}
+
+async function saveTenantWeather(){
+  const input=document.getElementById('weather-loc-input');
+  if(!input)return;
+  const val=input.value.trim();
+  if(!val){toast('Enter a location or zip code','error');return;}
+  try{
+    const updated=await apiFetch('PATCH','/tenant',{weather_location:val});
+    tenant.weather_location=updated.weather_location||val;
+    toast('Weather location saved','success');
+  }catch(e){toast('Failed to save: '+e.message,'error');}
+}
+
+async function setTier(pid,tier){
+  const p=family.find(f=>f.id===pid);if(!p)return;
+  const prev=p.contact_tier;
+  p.contact_tier=tier;
+  renderContent();
+  try{
+    await apiFetch('PUT',`/family/${pid}`,{contact_tier:tier});
+    toast(`${p.name}: ${TIERS.find(t=>t.t===tier)?.name}`,'success');
+  }catch(e){
+    p.contact_tier=prev;
+    renderContent();
+    toast('Save failed — check connection','error');
+  }
+}
+
+async function setPersonality(pid,presetId){
+  const p=family.find(f=>f.id===pid);if(!p)return;
+  const prev=p.jarvis_personality;
+  p.jarvis_personality=presetId;
+  renderContent();
+  try{
+    await apiFetch('PUT',`/family/${pid}`,{jarvis_personality:presetId});
+    toast(`${p.name}'s Jarvis: ${PERSONALITIES.find(pr=>pr.id===presetId)?.name}`,'success');
+  }catch(e){
+    p.jarvis_personality=prev;
+    renderContent();
+    toast('Save failed — check connection','error');
+  }
+}
+
+async function setLang(pid,lang){
+  const p=family.find(f=>f.id===pid);if(!p)return;
+  p.language=lang;
+  try{await apiFetch('PUT',`/family/${pid}`,{language:lang});}catch(e){}
+  renderContent();
+}
+
+async function runJob(id){
+  try{await fetch(`${API}/jobs/${id}/run`,{method:'POST'});toast('Job triggered \u25B6','success');}
+  catch(e){toast('Could not trigger job','error');}
+}
+
+/* ================================================================
+   VACATION MODE (Feature 7)
+================================================================ */
+function openVacation(pid) {
+  vacPersonId = pid;
+  const p = family.find(f=>f.id===pid);
+  document.getElementById('vac-title').textContent = `\u{1F334} Vacation Mode \u2014 ${p?.name||pid}`;
+  document.getElementById('vac-desc').textContent = `Pause ${p?.name||pid}'s automations. Pick a return date:`;
+  // Default to 1 week from now
+  const def = new Date(); def.setDate(def.getDate() + 7);
+  document.getElementById('vac-date').value = def.toISOString().split('T')[0];
+  openModal('vacation-modal');
+}
+
+async function saveVacation() {
+  if (!vacPersonId) return;
+  const date = document.getElementById('vac-date').value;
+  if (!date) { toast('Pick a return date','error'); return; }
+  const p = family.find(f=>f.id===vacPersonId);
+  if (p) {
+    p.vacation_until = new Date(date + 'T00:00:00Z').toISOString();
+    try { await apiFetch('PUT',`/family/${vacPersonId}`,{vacation_until:p.vacation_until}); } catch {}
+  }
+  toast(`${p?.name||vacPersonId} is on vacation until ${date}`,'success');
+  closeModal('vacation-modal');
+  renderTabs(); renderContent();
+}
+
+async function endVacation(pid) {
+  const p = family.find(f=>f.id===pid);
+  if (p) {
+    p.vacation_until = null;
+    try { await apiFetch('PUT',`/family/${pid}`,{vacation_until:null}); } catch {}
+  }
+  toast(`${p?.name||pid}'s vacation ended`,'success');
+  renderTabs(); renderContent();
+}
+
+/* ================================================================
+   JOB MODAL (Feature 6 — Templates)
+================================================================ */
+function openAddJob(pid,agentTypeId){
+  editingJobId=null;addingForPerson=pid;pickedCron='';
+  document.getElementById('jm-title').textContent='New Automation';
+  document.getElementById('jf-name').value='';
+  populatePersonSelect(pid);
+  document.getElementById('jf-cron').value='';
+  document.getElementById('jf-cron-val').value='';
+  document.getElementById('sched-display').textContent='Pick a schedule above';
+  document.getElementById('jm-del').style.display='none';
+  document.getElementById('cron-adv').classList.remove('show');
+  buildSchedPills('');
+
+  // FIX-07: Duplicate agent warning
+  const dupeWarn = document.getElementById('jm-dupe-warn');
+  if (dupeWarn) {
+    if (agentTypeId && agentTypeId !== 'custom' && pid) {
+      const existingJobs = jobs.filter(j => personOf(j) === pid && agentOf(j) === agentTypeId);
+      if (existingJobs.length > 0) {
+        const pName = pid === 'system' ? 'System' : family.find(f=>f.id===pid)?.name || pid;
+        const atName = AGENT_TYPES.find(a=>a.id===agentTypeId)?.name || agentTypeId;
+        dupeWarn.textContent = `⚠️ ${pName} already has a ${atName} agent (${existingJobs.length} job${existingJobs.length>1?'s':''}). Adding another creates a duplicate.`;
+        dupeWarn.style.display = '';
+      } else {
+        dupeWarn.style.display = 'none';
+      }
+    } else {
+      dupeWarn.style.display = 'none';
+    }
+  }
+
+  // Feature 6: Smart templates
+  let template = '';
+  if (agentTypeId && agentTypeId !== 'custom') {
+    const key = `${agentTypeId}:${pid}`;
+    template = TEMPLATES[key] || TEMPLATE_ANY[agentTypeId] || '';
+    if (template) {
+      const p = family.find(f=>f.id===pid);
+      template = template.replace(/\{name\}/g, p?.name||pid).replace(/\{channel\}/g, p?.preferred_channel||'whatsapp');
+    }
+  }
+  document.getElementById('jf-prompt').value = template;
+  openModal('job-modal');
+}
+
+function populatePersonSelect(selectedPid) {
+  const sel = document.getElementById('jf-person');
+  sel.innerHTML = family.filter(p=>p.contact_tier>0).map(p =>
+    `<option value="${p.id}"${p.id===selectedPid?' selected':''}>${p.name}</option>`
+  ).join('') + '<option value="system">System</option>';
+  if (selectedPid === 'system') sel.value = 'system';
+}
+
+function openEditJob(id){
+  const j=jobs.find(j=>String(j.id)===String(id));if(!j)return;
+  editingJobId=id;
+  const cron=j.schedule_value||'';
+  pickedCron=cron;
+  document.getElementById('jm-title').textContent='Edit Automation';
+  document.getElementById('jf-name').value=labelOf(j.name);
+  populatePersonSelect(personOf(j));
+  document.getElementById('jf-prompt').value=j.prompt||'';
+  document.getElementById('jf-cron').value=cron;
+  document.getElementById('jf-cron-val').value=cron;
+  document.getElementById('sched-display').textContent=cronDesc(cron)||'Custom schedule';
+  document.getElementById('jm-del').style.display='';
+  document.getElementById('cron-adv').classList.remove('show');
+  buildSchedPills(cron);
+  openModal('job-modal');
+}
+
+function buildSchedPills(activeCron){
+  document.getElementById('sched-pills').innerHTML=SCHEDULES.map(s=>`
+    <button class="spill${s.cron===activeCron?' picked':''}" onclick="pickSched('${s.cron}',this)">${s.label}</button>
+  `).join('');
+}
+function pickSched(cron,btn){
+  pickedCron=cron;
+  document.querySelectorAll('.spill').forEach(b=>b.classList.remove('picked'));
+  btn.classList.add('picked');
+  document.getElementById('jf-cron-val').value=cron;
+  document.getElementById('jf-cron').value=cron;
+  document.getElementById('sched-display').textContent=cronDesc(cron);
+}
+function cronInput(){
+  const v=document.getElementById('jf-cron').value;
+  pickedCron=v;
+  document.getElementById('jf-cron-val').value=v;
+  document.getElementById('cron-hint').textContent=cronDesc(v);
+  document.getElementById('sched-display').textContent=cronDesc(v)||v;
+}
+function toggleAdv(){document.getElementById('cron-adv').classList.toggle('show');}
+
+async function saveJob(){
+  const name=document.getElementById('jf-name').value.trim();
+  const pid=document.getElementById('jf-person').value;
+  const cron=(document.getElementById('jf-cron-val').value||pickedCron||document.getElementById('jf-cron').value).trim();
+  const prompt=document.getElementById('jf-prompt').value.trim();
+  if(!name){toast('Please enter a name','error');return;}
+  if(!cron){toast('Please set a schedule','error');return;}
+  if(!prompt){toast('Please describe what Jarvis should do','error');return;}
+  const slug=name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+  const body={prompt,schedule_type:'cron',schedule_value:cron,enabled:true,group_folder:'main',chat_jid:'tg:1449522448'};
+  if(!editingJobId) body.name=slug;
+  try{
+    if(editingJobId) await apiFetch('PATCH',`/jobs/${editingJobId}`,body);
+    else await apiFetch('POST','/jobs',body);
+    toast(editingJobId?'Saved \u2713':'Created \u2713','success');
+    closeModal('job-modal');await fetchAll();
+  }catch(e){toast('Save failed \u2014 try again','error');console.error(e);}
+}
+
+async function deleteJob(){
+  if(!editingJobId)return;
+  if(!confirm('Delete this automation? This cannot be undone.'))return;
+  try{
+    await apiFetch('DELETE',`/jobs/${editingJobId}`);
+    toast('Deleted','success');closeModal('job-modal');await fetchAll();
+  }catch(e){toast('Delete failed','error');}
+}
+
+/* ================================================================
+   ADD AGENT MODAL
+================================================================ */
+function openAddAgent(pid, preselectedType){
+  addingForPerson=pid;selectedAgentType=null;
+  const p=family.find(f=>f.id===pid);
+  document.getElementById('am-title').textContent=`Add an Agent${p?` for ${p.name}`:''}`;
+  const existing=new Set(jobs.filter(j=>personOf(j)===pid).map(j=>agentOf(j)));
+  document.getElementById('at-grid').innerHTML=AGENT_TYPES
+    .filter(a=>tenant.moneypenny_power>=a.power)
+    .map(a=>`
+      <div class="atcard${existing.has(a.id)?' has':''}${preselectedType===a.id?' sel':''}" id="atc-${a.id}" onclick="selectAt('${a.id}')">
+        <div class="at-ico">${a.icon}</div>
+        <div class="at-nm">${a.name}</div>
+        <div class="at-ds">${a.desc}</div>
+        ${existing.has(a.id)?`<div class="at-act">\u2713 Active</div>`:''}
+      </div>`).join('');
+  if (preselectedType) {
+    selectedAgentType = preselectedType;
+    document.getElementById('am-next').disabled = false;
+  } else {
+    document.getElementById('am-next').disabled=true;
+  }
+  openModal('agent-modal');
+}
+function selectAt(id){
+  selectedAgentType=id;
+  document.querySelectorAll('.atcard').forEach(c=>c.classList.remove('sel'));
+  document.getElementById(`atc-${id}`)?.classList.add('sel');
+  document.getElementById('am-next').disabled=false;
+}
+function agentNext(){
+  if(!selectedAgentType)return;
+  closeModal('agent-modal');
+  setTimeout(()=>openAddJob(addingForPerson,selectedAgentType),200);
+}
+
+/* ================================================================
+   EDIT PERSON MODAL
+================================================================ */
+let editPersonTier=6;
+
+function openEditPerson(pid){
+  const p=family.find(f=>f.id===pid);if(!p)return;
+  editPersonTier=p.contact_tier;
+  document.getElementById('pm-id').value=pid;
+  document.getElementById('pm-title').textContent=`Edit Profile \u2014 ${p.name}`;
+  document.getElementById('pm-name').value=p.name||'';
+  document.getElementById('pm-rel').value=p.relation||'Other';
+  document.getElementById('pm-phone').value=p.phone||'';
+  document.getElementById('pm-whatsapp').value=p.whatsapp||'';
+  document.getElementById('pm-email').value=p.email||'';
+  document.getElementById('pm-telegram').value=p.telegram||'';
+  document.getElementById('pm-quiet-start').value=p.quiet_hours?.start||'22:00';
+  document.getElementById('pm-quiet-end').value=p.quiet_hours?.end||'07:00';
+  document.getElementById('pm-notes').value=p.notes||'';
+  document.getElementById('pm-tiers').innerHTML=TIERS.map(t=>`
+    <button class="tier-btn${p.contact_tier===t.t?' active':''}" data-tier="${t.t}"
+      style="--tc:${t.color}" title="${t.desc}" onclick="pickEditTier(${t.t})">
+      <span class="ticon">${t.icon}</span><span class="tname">${t.name}</span>
+    </button>`).join('');
+  openModal('person-modal');
+}
+function pickEditTier(t){
+  editPersonTier=t;
+  document.querySelectorAll('#pm-tiers .tier-btn').forEach(b=>b.classList.toggle('active',+b.dataset.tier===t));
+}
+async function savePerson(){
+  const pid=document.getElementById('pm-id').value;
+  const updates={
+    name:document.getElementById('pm-name').value.trim(),
+    relation:document.getElementById('pm-rel').value,
+    phone:document.getElementById('pm-phone').value.trim(),
+    whatsapp:document.getElementById('pm-whatsapp').value.trim(),
+    email:document.getElementById('pm-email').value.trim(),
+    telegram:document.getElementById('pm-telegram').value.trim(),
+    quiet_hours:{
+      start:document.getElementById('pm-quiet-start').value,
+      end:document.getElementById('pm-quiet-end').value,
+    },
+    notes:document.getElementById('pm-notes').value.trim(),
+    contact_tier:editPersonTier,
+  };
+  const p=family.find(f=>f.id===pid);
+  if(p) Object.assign(p,updates);
+  try{await apiFetch('PUT',`/family/${pid}`,updates);toast('Profile saved \u2713','success');}
+  catch(e){toast('Saved locally \u2014 server sync pending','success');}
+  closeModal('person-modal');
+  renderTabs();renderContent();
+}
+
+/* ================================================================
+   ADD PERSON WIZARD
+================================================================ */
+const AP_EMOJIS = ['👤','👩','👨','👧','👦','🧒','👶','🧑','🧓','👴','👵','💚','💙','💛','❤️','🧙','✨','🌸','🌟','💫','⭐','🎯','🏆','🦁','🐯','🦊','🐺','🦋'];
+const AP_COLORS = ['#58a6ff','#f778ba','#a371f7','#f0883e','#3fb950','#d29922','#ff7b72','#79c0ff','#ffa7c4','#8b949e'];
+const AP_RELATIONS = ['Spouse/Partner','Son','Daughter','Parent','Sibling','Friend','Colleague','Other'];
+const AP_CHANNELS = [{id:'whatsapp',icon:'💬',label:'WhatsApp'},{id:'telegram',icon:'✈️',label:'Telegram'},{id:'email',icon:'📧',label:'Email'},{id:'phone',icon:'📱',label:'Phone'}];
+const AP_LANGS = [{id:'en',label:'🇺🇸 English'},{id:'he',label:'🇮🇱 Hebrew'},{id:'both',label:'Both'}];
+
+function openAddPerson(){
+  apStep=1;
+  apData={
+    name:'',relation:'Friend',emoji:'👤',color:'#58a6ff',
+    phone:'',whatsapp:'',email:'',telegram:'',
+    preferred_channel:'whatsapp',quiet_start:'22:00',quiet_end:'07:00',
+    tier:6,personality:'warm_friend',language:'he',
+  };
+  document.getElementById('ap-name').value='';
+  document.getElementById('ap-phone').value='';
+  document.getElementById('ap-whatsapp').value='';
+  document.getElementById('ap-email').value='';
+  document.getElementById('ap-telegram').value='';
+  document.getElementById('ap-quiet-start').value='22:00';
+  document.getElementById('ap-quiet-end').value='07:00';
+  apRenderStep1Static();
+  apRenderStep3Static();
+  apGoStep(1);
+  openModal('addperson-modal');
+  setTimeout(()=>document.getElementById('ap-name')?.focus(),100);
+}
+
+function apRenderStep1Static(){
+  // Relations
+  document.getElementById('ap-rel-grid').innerHTML = AP_RELATIONS.map(r =>
+    `<button class="ap-rel-btn${r===apData.relation?' active':''}" onclick="apPickRelation('${r}',this)">${r}</button>`
+  ).join('');
+  // Emojis
+  document.getElementById('ap-emoji-grid').innerHTML = AP_EMOJIS.map(e =>
+    `<button class="ap-emoji-btn${e===apData.emoji?' active':''}" onclick="apPickEmoji('${e}',this)">${e}</button>`
+  ).join('');
+  // Colors
+  document.getElementById('ap-color-row').innerHTML = AP_COLORS.map(c =>
+    `<div class="ap-color-sw${c===apData.color?' active':''}" style="background:${c}" onclick="apPickColor('${c}',this)" title="${c}"></div>`
+  ).join('');
+}
+
+function apRenderStep3Static(){
+  document.getElementById('ap-tiers').innerHTML = TIERS.map(t =>
+    `<button class="tier-btn${t.t===apData.tier?' active':''}" data-tier="${t.t}" style="--tc:${t.color}" title="${t.desc}" onclick="apPickTier(${t.t},this)">
+      <span class="ticon">${t.icon}</span><span class="tname">${t.name}</span>
+    </button>`).join('');
+  document.getElementById('ap-presets').innerHTML = PERSONALITIES.map(pr =>
+    `<div class="preset-card${pr.id===apData.personality?' active':''}" onclick="apPickPreset('${pr.id}',this)">
+      <div class="preset-icon">${pr.icon}</div>
+      <div class="preset-name">${pr.name}</div>
+      <div class="preset-desc">${pr.desc}</div>
+    </div>`).join('');
+  document.getElementById('ap-lang-row').innerHTML = AP_LANGS.map(l =>
+    `<button class="ap-lang-btn${l.id===apData.language?' active':''}" onclick="apPickLang('${l.id}',this)">${l.label}</button>`
+  ).join('');
+  document.getElementById('ap-channel-row').innerHTML = AP_CHANNELS.map(c =>
+    `<button class="ap-ch-btn${c.id===apData.preferred_channel?' active':''}" onclick="apPickChannel('${c.id}',this)">${c.icon} ${c.label}</button>`
+  ).join('');
+}
+
+function apGoStep(n){
+  if(n>1&&n>apStep+1) return; // can only go forward one step or back freely
+  // Validate before going to next step
+  if(n>apStep){
+    if(apStep===1&&!apData.name){toast('Please enter a name first','error');return;}
+  }
+  apStep=n;
+  // Show/hide steps
+  document.querySelectorAll('.ap-step-content').forEach((el,i)=>{
+    el.classList.toggle('active',i+1===n);
+  });
+  // Update step dots
+  for(let i=1;i<=4;i++){
+    const dot=document.getElementById(`apdot-${i}`);
+    if(!dot) continue;
+    dot.classList.remove('active','done');
+    if(i<n) dot.classList.add('done');
+    else if(i===n) dot.classList.add('active');
+    const line=document.getElementById(`apline-${i}`);
+    if(line) line.classList.toggle('done',i<n);
+  }
+  // Update nav buttons
+  const backBtn=document.getElementById('ap-back-btn');
+  const nextBtn=document.getElementById('ap-next-btn');
+  if(backBtn) backBtn.style.display=n>1?'':'none';
+  if(nextBtn){
+    if(n===4){nextBtn.textContent='Add to Family \u2713';nextBtn.onclick=saveNewPerson;}
+    else{nextBtn.textContent='Next \u2192';nextBtn.onclick=apNext;}
+  }
+  // Render step 2 channel row if going to step 2
+  if(n===2){
+    document.getElementById('ap-channel-row').innerHTML = AP_CHANNELS.map(c =>
+      `<button class="ap-ch-btn${c.id===apData.preferred_channel?' active':''}" onclick="apPickChannel('${c.id}',this)">${c.icon} ${c.label}</button>`
+    ).join('');
+  }
+  // Render preview if step 4
+  if(n===4) apRenderPreview();
+  // Update modal title
+  const titles=['Add a Family Member','How to Reach Them','Permissions & Personality','Preview'];
+  const t=document.getElementById('ap-modal-title');
+  if(t) t.textContent=titles[n-1];
+}
+
+function apNext(){
+  if(apStep===1&&!apData.name){toast('Please enter a name first','error');return;}
+  apGoStep(apStep+1);
+}
+function apBack(){ if(apStep>1) apGoStep(apStep-1); }
+
+function apPickRelation(r,el){
+  apData.relation=r;
+  document.querySelectorAll('.ap-rel-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+}
+function apPickEmoji(e,el){
+  apData.emoji=e;
+  document.querySelectorAll('.ap-emoji-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+}
+function apPickColor(c,el){
+  apData.color=c;
+  document.querySelectorAll('.ap-color-sw').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+}
+function apPhoneInput(v){
+  apData.phone=v.trim();
+  // Auto-copy to WhatsApp if WhatsApp is empty
+  const wa=document.getElementById('ap-whatsapp');
+  if(wa&&!wa.value) { wa.value=v; apData.whatsapp=v.trim(); }
+}
+function apPickChannel(c,el){
+  apData.preferred_channel=c;
+  document.querySelectorAll('.ap-ch-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+}
+function apPickTier(t,el){
+  apData.tier=t;
+  document.querySelectorAll('#ap-tiers .tier-btn').forEach(b=>b.classList.toggle('active',+b.dataset.tier===t));
+  const warn=document.getElementById('ap-blocked-warn');
+  if(warn) warn.classList.toggle('show',t===0);
+}
+function apPickPreset(id,el){
+  apData.personality=id;
+  document.querySelectorAll('#ap-presets .preset-card').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+}
+function apPickLang(l,el){
+  apData.language=l;
+  document.querySelectorAll('.ap-lang-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function apRenderPreview(){
+  const tier=TIERS.find(t=>t.t===apData.tier)||TIERS[6];
+  const preset=PERSONALITIES.find(p=>p.id===apData.personality)||PERSONALITIES[0];
+  const contacts=[
+    apData.phone?`📱 ${apData.phone}`:'',
+    apData.whatsapp?`💬 ${apData.whatsapp}`:'',
+    apData.email?`📧 ${apData.email}`:'',
+    apData.telegram?`✈️ ${apData.telegram}`:'',
+  ].filter(Boolean).join('<br>');
+  document.getElementById('ap-preview-card').innerHTML=`
+    <div class="ap-preview-avatar" style="background:${apData.color}22;border-color:${apData.color}">${apData.emoji}</div>
+    <div class="ap-preview-name">${apData.name||'New Person'}</div>
+    <div class="ap-preview-rel">${apData.relation}</div>
+    <div class="ap-preview-badges">
+      <span class="ap-preview-badge" style="border-color:${tier.color};color:${tier.color}">${tier.icon} ${tier.name}</span>
+      <span class="ap-preview-badge">${preset.icon} ${preset.name}</span>
+      <span class="ap-preview-badge">${apData.language==='en'?'🇺🇸 English':apData.language==='he'?'🇮🇱 Hebrew':'🌐 Both'}</span>
+    </div>
+    ${contacts?`<div class="ap-preview-contacts">${contacts}</div>`:'<div style="color:var(--muted);font-size:14px">No contact details added</div>'}`;
+}
+
+async function saveNewPerson(){
+  if(!apData.name){toast('Name is required','error');return;}
+  const np={
+    tenant_id:tenant.tenant_id||'benisrael',
+    id:apData.name.toLowerCase().replace(/[^a-z0-9]/g,'_'),
+    name:apData.name,
+    relation:apData.relation,
+    emoji:apData.emoji,
+    color:apData.color,
+    contact_tier:apData.tier,
+    phone:apData.phone,
+    whatsapp:apData.whatsapp,
+    email:apData.email,
+    telegram:apData.telegram,
+    preferred_channel:apData.preferred_channel,
+    quiet_hours:{start:apData.quiet_start||'22:00',end:apData.quiet_end||'07:00'},
+    language:apData.language,
+    jarvis_personality:apData.personality,
+    jarvis_personality_custom:'',
+    notes:'',
+    created_at:new Date().toISOString(),
+    created_by:currentUser||'portal',
+  };
+  const btn=document.getElementById('ap-next-btn');
+  if(btn){btn.disabled=true;btn.textContent='Adding...';}
+  try{
+    const created=await apiFetch('POST','/family',np);
+    family.push(created||np);
+    toast(`${np.name} added to the family \u2713`,'success');
+    closeModal('addperson-modal');
+    activePerson=np.id;activeSection='family';
+    renderDashboard();
+  }catch(e){
+    toast(e.message||'Failed to add person','error');
+    if(btn){btn.disabled=false;btn.textContent='Add to Family \u2713';}
+  }
+}
+
+/* ================================================================
+   SEARCH (Feature 11)
+================================================================ */
+function openSearch() {
+  document.getElementById('search-overlay').classList.add('open');
+  document.getElementById('search-input').value = '';
+  document.getElementById('search-results').innerHTML = '';
+  setTimeout(() => document.getElementById('search-input').focus(), 100);
+}
+function closeSearch() {
+  document.getElementById('search-overlay').classList.remove('open');
+}
+function onSearchInput() {
+  clearTimeout(searchDebounce);
+  searchDebounce = setTimeout(doSearch, 150);
+}
+function doSearch() {
+  const q = document.getElementById('search-input').value.toLowerCase().trim();
+  if (!q) { document.getElementById('search-results').innerHTML = ''; return; }
+  const results = [];
+
+  // Search people
+  const people = family.filter(p => p.name.toLowerCase().includes(q) || p.relation.toLowerCase().includes(q));
+  if (people.length) {
+    results.push(`<div class="sr-group"><div class="sr-group-title">People</div>${
+      people.map(p => `<div class="sr-item" onclick="closeSearch();activeSection='family';switchTo('${p.id}')">
+        <span class="sr-icon">${p.emoji}</span>
+        <div class="sr-info"><div class="sr-name">${p.name}</div><div class="sr-desc">${p.relation}</div></div>
+      </div>`).join('')
+    }</div>`);
+  }
+
+  // Search jobs
+  const matchedJobs = jobs.filter(j => {
+    const name = (j.name||'').toLowerCase();
+    const prompt = (j.prompt||'').toLowerCase();
+    return name.includes(q) || prompt.includes(q);
+  });
+  if (matchedJobs.length) {
+    results.push(`<div class="sr-group"><div class="sr-group-title">Jobs (${matchedJobs.length})</div>${
+      matchedJobs.slice(0,10).map(j => {
+        const pid = personOf(j);
+        const p = family.find(f=>f.id===pid);
+        return `<div class="sr-item" onclick="closeSearch();openEditJob('${j.id}')">
+          <span class="sr-icon">${p?.emoji||'\u2699\uFE0F'}</span>
+          <div class="sr-info"><div class="sr-name">${labelOf(j.name)}</div><div class="sr-desc">${cronDesc(j.schedule_value||'')} \u00B7 ${p?.name||'System'}</div></div>
+        </div>`;
+      }).join('')
+    }</div>`);
+  }
+
+  // Search agent types
+  const matchedTypes = AGENT_TYPES.filter(a => a.name.toLowerCase().includes(q) || a.desc.toLowerCase().includes(q));
+  if (matchedTypes.length) {
+    results.push(`<div class="sr-group"><div class="sr-group-title">Agent Types</div>${
+      matchedTypes.map(a => `<div class="sr-item" onclick="closeSearch();activeSection='family';switchTo('rotem');setTimeout(()=>openAddAgent('rotem'),100)">
+        <span class="sr-icon">${a.icon}</span>
+        <div class="sr-info"><div class="sr-name">${a.name}</div><div class="sr-desc">${a.desc}</div></div>
+      </div>`).join('')
+    }</div>`);
+  }
+
+  // Search capabilities
+  const matchedCaps = CAPABILITIES.filter(c => c.name.toLowerCase().includes(q) || c.desc.toLowerCase().includes(q));
+  if (matchedCaps.length) {
+    results.push(`<div class="sr-group"><div class="sr-group-title">Capabilities</div>${
+      matchedCaps.map(c => `<div class="sr-item" onclick="closeSearch();switchSection('capabilities')">
+        <span class="sr-icon">${c.icon}</span>
+        <div class="sr-info"><div class="sr-name">${c.name}</div><div class="sr-desc">${c.desc}</div></div>
+      </div>`).join('')
+    }</div>`);
+  }
+
+  if (!results.length) {
+    results.push(`<div style="text-align:center;padding:40px;color:var(--muted)">No results for "${q}"</div>`);
+  }
+
+  document.getElementById('search-results').innerHTML = results.join('');
+}
+
+// Keyboard shortcuts
+document.addEventListener('keydown', e => {
+  if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+    e.preventDefault();
+    openSearch();
+  }
+  if (e.key === 'Escape') {
+    if (document.getElementById('search-overlay').classList.contains('open')) {
+      closeSearch();
+    }
+  }
+});
+
+/* ================================================================
+   MODAL HELPERS
+================================================================ */
+function openModal(id){document.getElementById(id).classList.add('open');document.body.style.overflow='hidden';}
+function closeModal(id){document.getElementById(id).classList.remove('open');document.body.style.overflow='';}
+function bgClose(id,e){if(e.target===document.getElementById(id))closeModal(id);}
+
+/* ================================================================
+   TOAST
+================================================================ */
+function toast(msg,type='success'){
+  const el=document.createElement('div');
+  el.className=`toast ${type}`;
+  el.innerHTML=`${type==='success'?'\u2713':'\u26A0'} ${msg}`;
+  document.getElementById('toasts').appendChild(el);
+  setTimeout(()=>el.remove(),3500);
+}
+
+/* ================================================================
+   FONT SIZE (Feature 14)
+================================================================ */
+function setFontSize(px) {
+  document.documentElement.style.fontSize = px + 'px';
+  localStorage.setItem('jarvis_font_size', px);
+  updateFontButtons(px);
+}
+function updateFontButtons(px) {
+  const btns = document.querySelectorAll('.font-toggle button');
+  const sizes = [17,20,24];
+  btns.forEach((b,i) => b.classList.toggle('active', sizes[i] === px));
+}
+function loadFontSize() {
+  const saved = localStorage.getItem('jarvis_font_size');
+  if (saved) {
+    const px = parseInt(saved);
+    document.documentElement.style.fontSize = px + 'px';
+    updateFontButtons(px);
+  } else {
+    updateFontButtons(17);
+  }
+}
+
+/* ================================================================
+   COUNTDOWN UPDATER (Feature 9)
+================================================================ */
+function updateCountdowns() {
+  document.querySelectorAll('.job-countdown[data-next]').forEach(el => {
+    const next = el.dataset.next;
+    const enabled = el.dataset.enabled === '1';
+    if (!enabled) { el.textContent = 'Off'; el.className = 'job-countdown'; return; }
+    if (!next) { el.textContent = '\u2014'; el.className = 'job-countdown'; return; }
+    const d = new Date(next) - Date.now();
+    if (d < -60000) { el.textContent = 'overdue'; el.className = 'job-countdown overdue'; return; }
+    const a = Math.abs(d);
+    if (a < 60000) { el.textContent = 'now'; el.className = 'job-countdown'; return; }
+    const h = Math.floor(a/3600000), min = Math.floor((a%3600000)/60000);
+    el.textContent = h > 0 ? `in ${h}h ${min}m` : `in ${min}m`;
+    el.className = 'job-countdown';
+  });
+}
+
+/* ================================================================
+   INIT
+================================================================ */
+function toggleCustomTone(pid) {
+  const box = document.getElementById(`custom-tone-${pid}`);
+  if (!box) return;
+  box.style.display = box.style.display === 'none' ? 'block' : 'none';
+}
+
+async function saveCustomTone(pid) {
+  const val = document.getElementById(`custom-tone-text-${pid}`)?.value.trim() ?? '';
+  const p = family.find(f => f.id === pid);
+  if (!p) return;
+  p.jarvis_personality_custom = val;
+  try {
+    await apiFetch('PUT', `/family/${pid}`, {jarvis_personality_custom: val});
+    toast('Custom tone saved', 'success');
+    toggleCustomTone(pid);
+    // refresh the toggle label
+    const btn = document.querySelector(`#custom-tone-${pid}`)?.previousElementSibling;
+    if (btn) btn.textContent = val ? '✏️ Edit custom tone…' : '✏️ Add custom tone…';
+  } catch(e) {
+    toast('Save failed', 'error');
+  }
+}
+
+async function clearCustomTone(pid){
+  const p=family.find(f=>f.id===pid);if(!p)return;
+  p.jarvis_personality_custom='';
+  document.getElementById(`custom-tone-text-${pid}`).value='';
+  try{await apiFetch('PATCH',`/family/${pid}`,{jarvis_personality_custom:''});}catch(e){}
+  toast('Custom tone cleared','success');
+  renderContent();
+}
+
+async function fetchMe() {
+  try {
+    const r = await fetch(`${API}/me`);
+    if (!r.ok) return;
+    const u = await r.json();
+    if (!u.name && !u.user) return;
+    const display = u.name || u.user;
+    const avatarMap = {'rotem':'\u{1F464}','miko':'\u{1F49A}','itay':'\u{1F9D9}','danielle':'\u2728','noya':'\u{1F31F}'};
+    const key = display.toLowerCase();
+    const avatar = Object.entries(avatarMap).find(([k])=>key.includes(k))?.[1] || '\u{1F464}';
+    document.getElementById('hs-user-avatar').textContent = avatar;
+    document.getElementById('hs-user-name').textContent = display;
+    currentUser = u.user || u.name?.toLowerCase() || null;
+    document.getElementById('hs-user').style.display = 'flex';
+  } catch {}
+}
+
+/* ================================================================
+   THEME (VA-10)
+================================================================ */
+function toggleTheme() {
+  const html = document.documentElement;
+  const next = html.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+  html.setAttribute('data-theme', next === 'dark' ? '' : 'light');
+  localStorage.setItem('jarvis_theme', next);
+  const btn = document.getElementById('theme-toggle');
+  if (btn) btn.textContent = next === 'light' ? '\uD83C\uDF19' : '\u2600\uFE0F';
+}
+function loadTheme() {
+  const saved = localStorage.getItem('jarvis_theme');
+  if (saved === 'light') {
+    document.documentElement.setAttribute('data-theme', 'light');
+    const btn = document.getElementById('theme-toggle');
+    if (btn) btn.textContent = '\uD83C\uDF19';
+  }
+}
+
+/* ================================================================
+   MORNING BRIEF (VA-08)
+================================================================ */
+async function triggerMorningBrief() {
+  const morningJob = jobs.find(j => /morning-chaos|morning.chaos/i.test(j.name||''));
+  if (!morningJob) { toast('Morning brief job not found','error'); return; }
+  try {
+    await fetch(`${API}/jobs/${morningJob.id}/run`, {method:'POST'});
+    toast('\u2600\uFE0F Morning brief triggered \u2014 check WhatsApp/Telegram in ~30 seconds','success');
+  } catch { toast('Failed to trigger \u2014 check if Jarvis is running','error'); }
+}
+
+/* ================================================================
+   TODAY PANEL (VA-02)
+================================================================ */
+function renderTodayPanel(p) {
+  if (!p || p.id === 'system') return '';
+  const now = new Date();
+  const midnight = new Date(now); midnight.setHours(0,0,0,0);
+  const pJobs = jobs.filter(j => personOf(j) === p.id);
+  const ranToday = pJobs.filter(j => j.last_run && new Date(j.last_run) > midnight).length;
+  const failed = pJobs.filter(j => j.status === 'failed').length;
+  const nextJob = pJobs.filter(j => isOn(j) && j.next_run && new Date(j.next_run) > now)
+    .sort((a,b) => new Date(a.next_run)-new Date(b.next_run))[0];
+
+  const parts = [];
+  if (ranToday > 0) parts.push(`\u2705 ${ranToday} job${ranToday>1?'s':''} ran today`);
+  if (nextJob) parts.push(`\u23F0 Next: ${labelOf(nextJob.name)} ${relTime(nextJob.next_run)}`);
+  if (failed > 0) parts.push(`<span style="color:var(--red)">\u26A0\uFE0F ${failed} job${failed>1?'s':''} need attention</span>`);
+
+  if (!parts.length && pJobs.length === 0) return '';
+
+  // VA-04: calendar strip — use cache if available, otherwise trigger async fetch
+  const cached = calCache[p.id];
+  const calHtml = cached?.events
+    ? formatCalStrip(cached.events)
+    : '<span style="color:var(--muted);font-size:13px">Loading calendar…</span>';
+  if (!cached) fetchPersonCalendar(p.id); // async, updates DOM via cal-strip-{pid}
+
+  return `<div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px 18px;margin-bottom:18px;font-size:15px">
+    <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center">
+      <span style="font-size:18px">${p.emoji}</span>
+      ${parts.length ? parts.join('<span style="color:var(--border);margin:0 4px">\u00B7</span>') : '<span style="color:var(--muted)">No automations yet</span>'}
+      ${failed > 0 ? `<button class="btn btn-sm btn-ghost" style="margin-left:auto;color:var(--red);border-color:var(--red)" onclick="switchSection('activity')">View issues \u2192</button>` : ''}
+    </div>
+    <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);display:flex;align-items:flex-start;gap:8px">
+      <span style="font-size:14px;flex-shrink:0">📅</span>
+      <div id="cal-strip-${p.id}">${calHtml}</div>
+    </div>
+  </div>`;
+}
+
+/* ================================================================
+   INLINE COMPOSE (VA-05)
+================================================================ */
+function renderInlineCompose(p) {
+  if (!p || p.contact_tier === 0) return '';
+  const chanIcons = {whatsapp:'\uD83D\uDCAC',telegram:'\u2708\uFE0F',email:'\uD83D\uDCE7',phone:'\uD83D\uDCF1'};
+  const ch = p.preferred_channel || 'whatsapp';
+  const icon = chanIcons[ch] || '\uD83D\uDCAC';
+  return `<div class="inline-compose" style="--pc:${p.color}">
+    <button class="compose-channel" title="Channel: ${ch}" onclick="cycleComposeChannel('${p.id}',this)" data-channel="${ch}">${icon}</button>
+    <input id="compose-input-${p.id}" placeholder="Message ${p.name}\u2026"
+      onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();inlineSend('${p.id}',this)}"
+    >
+    <button class="compose-send" onclick="inlineSend('${p.id}',document.getElementById('compose-input-${p.id}'))">Send \u2192</button>
+  </div>`;
+}
+
+const COMPOSE_CHANNELS = ['whatsapp','telegram','email'];
+function cycleComposeChannel(pid, btn) {
+  const current = btn.dataset.channel;
+  const idx = COMPOSE_CHANNELS.indexOf(current);
+  const next = COMPOSE_CHANNELS[(idx+1) % COMPOSE_CHANNELS.length];
+  const chanIcons = {whatsapp:'\uD83D\uDCAC',telegram:'\u2708\uFE0F',email:'\uD83D\uDCE7'};
+  btn.dataset.channel = next;
+  btn.textContent = chanIcons[next] || '\uD83D\uDCAC';
+  btn.title = 'Channel: ' + next;
+}
+
+async function inlineSend(pid, input) {
+  const p = family.find(f=>f.id===pid);
+  const msg = (input?.value||'').trim();
+  if (!msg) return;
+  const btn = input?.parentElement?.querySelector('.compose-channel');
+  const channel = btn?.dataset?.channel || p?.preferred_channel || 'whatsapp';
+  input.disabled = true;
+  try {
+    await apiFetch('POST','/proxy/contact',{action:'text',contact:p?.name||pid,channel,message:msg});
+    input.value = '';
+    toast(`Sent to ${p?.name||pid} via ${channel} \u2713`,'success');
+  } catch { toast('Send failed \u2014 check Moneypenny','error'); }
+  finally { input.disabled = false; input.focus(); }
+}
+
+/* ================================================================
+   COVERAGE BADGE (VA-06)
+================================================================ */
+const COVERAGE_BY_RELATION = {
+  'Self': ['morning','email','calendar','fitness','research','security'],
+  'self': ['morning','email','calendar','fitness','research','security'],
+  'Spouse': ['morning','email','bedtime'],
+  'spouse': ['morning','email','bedtime'],
+  'Son': ['bedtime','family'],
+  'son': ['bedtime','family'],
+  'Daughter': ['bedtime','family'],
+  'daughter': ['bedtime','family'],
+};
+
+function coverageBadge(p) {
+  const rel = (p.relation||'').toLowerCase();
+  const recommended = COVERAGE_BY_RELATION[p.relation] || COVERAGE_BY_RELATION[rel] || [];
+  if (!recommended.length) return '';
+  const pJobs = jobs.filter(j => personOf(j) === p.id && isOn(j));
+  const covered = recommended.filter(type => pJobs.some(j => agentOf(j) === type));
+  const pct = Math.round((covered.length / recommended.length) * 100);
+  const color = pct >= 80 ? 'var(--green)' : pct >= 50 ? 'var(--yellow)' : 'var(--muted)';
+  const label = pct >= 80 ? '\uD83D\uDC9A Full' : pct >= 50 ? '\uD83D\uDFE1 Partial' : '\u26AA Minimal';
+  const missing = recommended.filter(t => !covered.includes(t));
+  const missingHtml = missing.length ? `<div style="font-size:13px;color:var(--muted);margin-top:6px">Missing: ${missing.map(t => {
+    const at = AGENT_TYPES.find(a=>a.id===t);
+    return `<a href="#" onclick="event.preventDefault();openAddAgent('${p.id}','${t}')" style="color:var(--accent)">${at?.icon||''} ${at?.name||t}</a>`;
+  }).join(', ')}</div>` : '';
+  return `<div style="display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:20px;border:1px solid var(--border);font-size:13px;font-weight:600;color:${color};margin-bottom:10px" title="Automation coverage: ${covered.length}/${recommended.length} types">
+    ${label} \u00B7 ${covered.length}/${recommended.length} agents${missingHtml}</div>`;
+}
+
+/* ================================================================
+   TIMELINE LIST VIEW (VA-07)
+================================================================ */
+let timelineViewMode = 'list';
+
+function renderTimelineList(allPeopleArg, isWeekend) {
+  const allEvents = [];
+  for (const p of allPeopleArg) {
+    const pJobs = jobs.filter(j => (p.id === 'system' ? personOf(j) === 'system' : personOf(j) === p.id) && isOn(j));
+    for (const j of pJobs) {
+      const times = cronFireTimes(j.schedule_value||'', isWeekend);
+      if (!times.length) continue;
+      const firstT = times[0];
+      const multi = times.length > 2; // 3+ fires/day → show schedule label, not exact time
+      const h = Math.floor(firstT/60), mn = firstT%60;
+      const label12 = `${h===0?12:h>12?h-12:h}:${String(mn).padStart(2,'0')} ${h<12?'AM':'PM'}`;
+      const timeSub = multi ? cronLabel(j.schedule_value||'') : times.map(t=>{const hh=Math.floor(t/60),mm=t%60;return`${hh===0?12:hh>12?hh-12:hh}:${String(mm).padStart(2,'0')} ${hh<12?'AM':'PM'}`;}).join(' · ');
+      allEvents.push({t: firstT, label12: multi ? '' : label12, timeSub, multi, j, p});
+    }
+  }
+  allEvents.sort((a,b) => a.t - b.t);
+
+  const zones = [
+    {name:'\uD83C\uDF05 Morning', range:[360,720], items:[]},
+    {name:'\u2600\uFE0F Afternoon', range:[720,1080], items:[]},
+    {name:'\uD83C\uDF06 Evening', range:[1080,1320], items:[]},
+    {name:'\uD83C\uDF19 Night', range:[1320,360], items:[]},
+  ];
+
+  allEvents.forEach(ev => {
+    const t = ev.t;
+    if (t >= 360 && t < 720) zones[0].items.push(ev);
+    else if (t >= 720 && t < 1080) zones[1].items.push(ev);
+    else if (t >= 1080 && t < 1320) zones[2].items.push(ev);
+    else zones[3].items.push(ev);
+  });
+
+  if (!allEvents.length) return '<div class="activity-empty">No scheduled automations found for this day type</div>';
+
+  return zones.filter(z => z.items.length).map(z => `
+    <div style="margin-bottom:24px">
+      <div style="font-size:14px;font-weight:700;color:var(--muted);margin-bottom:10px;letter-spacing:.5px">${z.name}</div>
+      ${z.items.map(ev => `
+        <div style="display:flex;align-items:center;gap:12px;padding:10px 16px;background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:6px;cursor:pointer;transition:background .15s"
+          onclick="openEditJob('${ev.j.id}')" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='var(--surface)'">
+          <span style="font-size:13px;font-weight:700;color:var(--muted);min-width:72px;line-height:1.3">${ev.multi ? '🔁' : ev.label12}</span>
+          <span style="font-size:18px">${ev.p.emoji}</span>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:15px;font-weight:600">${labelOf(ev.j.name)}</div>
+            <div style="font-size:12px;color:var(--muted)">${ev.timeSub} · <span title="${channelOf(ev.j).label}">${channelOf(ev.j).icon}</span> ${ev.p.name}</div>
+          </div>
+          <span style="width:12px;height:12px;border-radius:50%;background:${ev.p.color};flex-shrink:0"></span>
+        </div>`).join('')}
+    </div>`).join('');
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+  loadFontSize();
+  loadTheme();
+  fetchAll();
+  fetchMe();
+  checkMp();
+  setInterval(fetchAll, 30000);
+  setInterval(updateCountdowns, 60000);
+  setInterval(checkMp, 60000);
+});
+</script>
+</body>
+</html>

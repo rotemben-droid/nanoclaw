@@ -1,0 +1,718 @@
+#!/usr/bin/env node
+// Jarvis Job Manager API + UI server — port 3003
+
+import http from 'http';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { randomUUID } from 'crypto';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const DB_PATH    = '/opt/homelab/nanoclaw/app/store/messages.db';
+const HTML_PATH  = '/opt/homelab/nanoclaw/app/job-manager.html';
+const FAMILY_PATH  = '/opt/homelab/nanoclaw/app/config/family.json';
+const TENANT_PATH  = '/opt/homelab/nanoclaw/app/config/tenant.json';
+const MP_FAMILY_PATH  = '/opt/homelab/moneypenny/family.json';
+const GROUPS_BASE_PATH = process.env.GROUPS_PATH || '/opt/homelab/nanoclaw/app/groups';
+const IPC_DIR         = '/opt/homelab/nanoclaw/app/data/ipc';
+// job-manager-server runs on the host (not in Docker), so use localhost port mapping
+const MONEYPENNY_URL = process.env.MONEYPENNY_URL || 'http://localhost:3010';
+const MONEYPENNY_KEY = '2acc8deb480657669c15f511df33ee13824392e1d6c556ad21e406eddbbb44c9';
+const PORT = 3003;
+
+const Database = (await import('/opt/homelab/nanoclaw/app/node_modules/better-sqlite3/lib/index.js')).default;
+const { CronExpressionParser } = await import('/opt/homelab/nanoclaw/app/node_modules/cron-parser/dist/index.js');
+const TZ = 'America/Los_Angeles';
+
+function getDb() { return new Database(DB_PATH); }
+
+function computeNextRun(expr) {
+  try { return CronExpressionParser.parse(expr, { tz: TZ }).next().toISOString(); }
+  catch { return null; }
+}
+
+function parseBody(req) {
+  return new Promise((resolve, reject) => {
+    let body = '';
+    req.on('data', chunk => body += chunk);
+    req.on('end', () => { try { resolve(JSON.parse(body || '{}')); } catch(e) { reject(e); } });
+    req.on('error', reject);
+  });
+}
+
+function readJson(filePath, fallback) {
+  try { return JSON.parse(fs.readFileSync(filePath, 'utf8')); }
+  catch { return fallback; }
+}
+
+function writeJson(filePath, data) {
+  fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf8');
+}
+
+async function proxyMoneypenny(tool, body) {
+  const payload = JSON.stringify(body);
+  return new Promise((resolve, reject) => {
+    const mpUrl = new URL(MONEYPENNY_URL);
+    const req = http.request({
+      hostname: mpUrl.hostname, port: parseInt(mpUrl.port) || 80,
+      path: `/tools/${tool}`, method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(payload),
+        'x-api-key': MONEYPENNY_KEY,
+      }
+    }, (res) => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => {
+        try { resolve({ status: res.statusCode, body: JSON.parse(data) }); }
+        catch { resolve({ status: res.statusCode, body: data }); }
+      });
+    });
+    req.on('error', reject);
+    req.write(payload);
+    req.end();
+  });
+}
+
+// ── Personality presets ───────────────────────────────────────────
+const PERSONALITY_PRESETS = {
+  classic_butler: `You are in *British Butler* mode. Impeccably formal, measured, and dignified — think Jeeves from P.G. Wodehouse. Use complete sentences and precise vocabulary. Phrases like "Indeed", "As you wish", "I have taken the liberty of", and "Quite so" are natural. Never use contractions in formal statements. Dry, perfectly restrained wit is permitted — but never slapstick. If the person makes a mistake, acknowledge it with supreme tact.`,
+
+  snarky_ai: `You are in *Head Chef* mode. Direct, passionate, and results-obsessed — Gordon Ramsay's drive channeled entirely into helpfulness. Lead with the answer, no preamble. Short punchy sentences. "Right, here's exactly what we're doing." "No excuses — execute." Cut fluff ruthlessly. Occasional kitchen metaphors are fine ("Let's prep this properly", "This is undercooked, let's fix it"). Deeply competent, never cruel.`,
+
+  warm_friend: `You are in *Warm Friend* mode. Genuinely caring, casual, and encouraging — like a brilliant best friend who happens to know everything. Use their name naturally in conversation. Light warmth in every message. A touch of humor when appropriate. "Hey! Big day today — you've got this." Never clinical, never stiff. Make them feel genuinely seen and supported.`,
+
+  coach: `You are in *Sabra* mode — Israeli directness with deep warmth underneath. Get straight to the point. Zero patience for beating around the bush, but genuinely invested in this person. "Yalla, let's go." "Here's the deal, straight up." Short, honest sentences. A Hebrew word feels natural occasionally (yalla, sababa, b'seder, nu). Underneath the directness: real care and loyalty.`,
+
+  storyteller: `You are in *Storyteller* mode — creative, narrative, and full of wonder. Every task is a small adventure. Every message can be a chapter. Use vivid language, metaphor, and imagination freely. Bedtime messages become mini-stories with characters and stakes. Reminders feel like quests. Celebrate small wins dramatically. Keep the magic alive — especially for children.`,
+};
+
+const LANGUAGE_LABELS = {
+  en: 'English', he: 'Hebrew', both: 'English and Hebrew',
+};
+
+const CHANNEL_LABELS = {
+  whatsapp: 'WhatsApp', telegram: 'Telegram', email: 'Email',
+  phone: 'Phone', none: 'None',
+};
+
+// ── DB schema migration + seed ───────────────────────────────────
+function initDbTables() {
+  const db = getDb();
+  try {
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS people (
+        id TEXT PRIMARY KEY,
+        tenant_id TEXT NOT NULL DEFAULT 'benisrael',
+        name TEXT NOT NULL,
+        relation TEXT DEFAULT '',
+        emoji TEXT DEFAULT '',
+        color TEXT DEFAULT '#58a6ff',
+        contact_tier INTEGER DEFAULT 6,
+        phone TEXT DEFAULT '',
+        whatsapp TEXT DEFAULT '',
+        email TEXT DEFAULT '',
+        telegram TEXT DEFAULT '',
+        preferred_channel TEXT DEFAULT 'whatsapp',
+        quiet_hours_start TEXT DEFAULT '22:00',
+        quiet_hours_end TEXT DEFAULT '07:00',
+        language TEXT DEFAULT 'en',
+        jarvis_personality TEXT DEFAULT 'classic_butler',
+        jarvis_personality_custom TEXT DEFAULT '',
+        notes TEXT DEFAULT '',
+        created_at TEXT DEFAULT (datetime('now'))
+      );
+
+      CREATE TABLE IF NOT EXISTS tenants (
+        tenant_id TEXT PRIMARY KEY,
+        owner TEXT NOT NULL DEFAULT 'Rotem',
+        jarvis_name TEXT DEFAULT 'Jarvis',
+        moneypenny_power INTEGER DEFAULT 3,
+        timezone TEXT DEFAULT 'America/Los_Angeles',
+        language TEXT DEFAULT 'en',
+        weather_location TEXT DEFAULT 'Los Altos Hills, CA'
+      );
+    `);
+    // Migrate existing DBs that predate weather_location column
+    try {
+      db.prepare("ALTER TABLE tenants ADD COLUMN weather_location TEXT DEFAULT 'Los Altos Hills, CA'").run();
+    } catch { /* column already exists — ok */ }
+
+    // Seed people from family.json if table is empty
+    const peopleCount = db.prepare('SELECT COUNT(*) AS cnt FROM people').get().cnt;
+    if (peopleCount === 0) {
+      const familyData = readJson(FAMILY_PATH, { people: [] });
+      const people = familyData.people || [];
+      if (people.length > 0) {
+        const insert = db.prepare(`
+          INSERT INTO people (id, tenant_id, name, relation, emoji, color, contact_tier,
+            phone, whatsapp, email, telegram, preferred_channel,
+            quiet_hours_start, quiet_hours_end, language,
+            jarvis_personality, jarvis_personality_custom, notes, created_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `);
+        const insertMany = db.transaction((rows) => {
+          for (const p of rows) {
+            const qh = p.quiet_hours || {};
+            insert.run(
+              p.id,
+              p.tenant_id || familyData.tenant_id || 'benisrael',
+              p.name || '',
+              p.relation || '',
+              p.emoji || '',
+              p.color || '#58a6ff',
+              p.contact_tier ?? 6,
+              p.phone || '',
+              p.whatsapp || '',
+              p.email || '',
+              p.telegram || '',
+              p.preferred_channel || 'whatsapp',
+              qh.start || '22:00',
+              qh.end || '07:00',
+              p.language || 'en',
+              p.jarvis_personality || 'classic_butler',
+              p.jarvis_personality_custom || '',
+              p.notes || '',
+              p.created_at || new Date().toISOString()
+            );
+          }
+        });
+        insertMany(people);
+        console.log(`Seeded ${people.length} people from family.json into DB`);
+      }
+    }
+
+    // Seed tenants from tenant.json if table is empty
+    const tenantCount = db.prepare('SELECT COUNT(*) AS cnt FROM tenants').get().cnt;
+    if (tenantCount === 0) {
+      const tenantData = readJson(TENANT_PATH, {});
+      if (tenantData.tenant_id) {
+        db.prepare(`
+          INSERT INTO tenants (tenant_id, owner, jarvis_name, moneypenny_power, timezone, language, weather_location)
+          VALUES (?, ?, ?, ?, ?, ?, ?)
+        `).run(
+          tenantData.tenant_id,
+          tenantData.owner || 'Rotem',
+          tenantData.jarvis_name || 'Jarvis',
+          tenantData.moneypenny_power ?? 3,
+          tenantData.timezone || 'America/Los_Angeles',
+          tenantData.language || 'en',
+          tenantData.weather_location || 'Los Altos Hills, CA'
+        );
+        console.log(`Seeded tenant "${tenantData.tenant_id}" from tenant.json into DB`);
+      }
+    }
+  } finally { db.close(); }
+}
+
+// Run migration on startup
+initDbTables();
+
+// ── Helper: DB row → API person object (unflatten quiet_hours) ───
+function rowToPerson(row) {
+  if (!row) return null;
+  const { quiet_hours_start, quiet_hours_end, ...rest } = row;
+  return {
+    ...rest,
+    quiet_hours: {
+      start: quiet_hours_start || '22:00',
+      end: quiet_hours_end || '07:00',
+    },
+  };
+}
+
+// ── Helper: API body → flat DB fields (flatten quiet_hours) ──────
+function flattenQuietHours(body) {
+  const flat = { ...body };
+  if (flat.quiet_hours) {
+    if (flat.quiet_hours.start !== undefined) flat.quiet_hours_start = flat.quiet_hours.start;
+    if (flat.quiet_hours.end !== undefined)   flat.quiet_hours_end = flat.quiet_hours.end;
+    delete flat.quiet_hours;
+  }
+  return flat;
+}
+
+// ── Helper: build prompt_injection for person-context ────────────
+function buildPromptInjection(row) {
+  const presetText = PERSONALITY_PRESETS[row.jarvis_personality] || PERSONALITY_PRESETS.classic_butler;
+  const langLabel = LANGUAGE_LABELS[row.language] || row.language || 'English';
+  const channelLabel = CHANNEL_LABELS[row.preferred_channel] || row.preferred_channel || 'WhatsApp';
+  const quietStart = row.quiet_hours_start || '22:00';
+  const quietEnd   = row.quiet_hours_end   || '07:00';
+
+  let prompt = `--- PERSONALITY FOR ${row.name.toUpperCase()} ---\n`;
+  prompt += presetText + '\n';
+  if (row.jarvis_personality_custom && row.jarvis_personality_custom.trim()) {
+    prompt += `\nAdditional tone instructions from the owner: ${row.jarvis_personality_custom.trim()}\n`;
+  }
+  prompt += `\nContext: You are talking to ${row.name} (${row.relation || 'family member'}).`;
+  prompt += ` Communicate in ${langLabel}.`;
+  prompt += ` Preferred channel: ${channelLabel}.`;
+  prompt += ` Do not contact between ${quietStart} and ${quietEnd} local time.`;
+  prompt += '\n--- END PERSONALITY ---';
+  return prompt;
+}
+
+// ── Personality → group folder mapping ───────────────────────────
+const NAME_TO_GROUP = {
+  rotem:    'whatsapp_main',
+  miko:     'whatsapp_miko',
+  itay:     'whatsapp_itay',
+  danielle: 'whatsapp_danielle',
+  noya:     'whatsapp_noya',
+};
+
+function writePersonalityContext(row) {
+  const folderKey = row.name.toLowerCase();
+  const folderName = NAME_TO_GROUP[folderKey];
+  if (!folderName) return; // unknown person — skip
+  const groupPath = path.join(GROUPS_BASE_PATH, folderName);
+  if (!fs.existsSync(groupPath)) return; // group folder doesn't exist here
+  const content = `<!-- Auto-generated by Jarvis Portal — do not edit manually -->\n` +
+                  `<!-- Last updated: ${new Date().toISOString()} -->\n\n` +
+                  buildPromptInjection(row) + '\n';
+  try {
+    fs.writeFileSync(path.join(groupPath, 'personality-context.md'), content, 'utf8');
+    console.log(`[personality] Wrote personality-context.md for ${row.name}`);
+  } catch (e) {
+    console.error(`[personality] Failed for ${row.name}:`, e.message);
+  }
+}
+
+function writeAllPersonalityContexts() {
+  const db = getDb();
+  try {
+    const rows = db.prepare("SELECT * FROM people WHERE tenant_id='benisrael'").all();
+    for (const row of rows) writePersonalityContext(row);
+    console.log(`[personality] Wrote personality context files for ${rows.length} people`);
+  } catch (e) {
+    console.error('[personality] writeAllPersonalityContexts failed:', e.message);
+  } finally { db.close(); }
+}
+
+const CORS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type',
+};
+
+function json(res, data, status = 200) {
+  res.writeHead(status, { 'Content-Type': 'application/json', ...CORS });
+  res.end(JSON.stringify(data));
+}
+
+function err(res, msg, status = 400) { json(res, { error: msg }, status); }
+
+const server = http.createServer(async (req, res) => {
+  const url = new URL(req.url, `http://localhost`);
+  const p = url.pathname;
+
+  if (req.method === 'OPTIONS') {
+    res.writeHead(204, CORS);
+    return res.end();
+  }
+
+  // ── Logged-in user (Authelia forward-auth headers) ─────────
+  if (req.method === 'GET' && p === '/api/me') {
+    return json(res, {
+      user:   req.headers['remote-user']  || null,
+      name:   req.headers['remote-name']  || null,
+      email:  req.headers['remote-email'] || null,
+      groups: req.headers['remote-groups']|| null,
+    });
+  }
+
+  // ── Serve HTML UI ──────────────────────────────────────────
+  if (req.method === 'GET' && (p === '/' || p === '/index.html')) {
+    try {
+      res.writeHead(200, { 'Content-Type': 'text/html', ...CORS });
+      return res.end(fs.readFileSync(HTML_PATH));
+    } catch {
+      res.writeHead(404); return res.end('job-manager.html not found');
+    }
+  }
+
+  // ── GET /api/jobs ──────────────────────────────────────────
+  if (req.method === 'GET' && p === '/api/jobs') {
+    const db = getDb();
+    try {
+      const jobs = db.prepare(`
+        SELECT id, name, group_folder, chat_jid, prompt, schedule_type, schedule_value,
+               context_mode, next_run, status, enabled, created_at
+        FROM scheduled_tasks ORDER BY next_run ASC
+      `).all();
+      return json(res, jobs);
+    } finally { db.close(); }
+  }
+
+  // ── POST /api/jobs ─────────────────────────────────────────
+  if (req.method === 'POST' && p === '/api/jobs') {
+    const db = getDb();
+    try {
+      const body = await parseBody(req);
+      if (!body.name) return err(res, 'name is required');
+      const sv = body.schedule_value || body.cron_expr || body.schedule;
+      if (!sv) return err(res, 'schedule_value is required');
+      const id = randomUUID();
+      const next_run = computeNextRun(sv);
+      db.prepare(`
+        INSERT INTO scheduled_tasks
+          (id, name, group_folder, chat_jid, prompt, schedule_type, schedule_value,
+           context_mode, next_run, status, enabled, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 1, ?)
+      `).run(id, body.name, body.group_folder||'main', body.chat_jid||'tg:1449522448',
+             body.prompt||'', body.schedule_type||'cron', sv,
+             body.context_mode||'isolated', next_run, new Date().toISOString());
+      return json(res, db.prepare('SELECT * FROM scheduled_tasks WHERE id=?').get(id), 201);
+    } catch(e) { return err(res, e.message); } finally { db.close(); }
+  }
+
+  const singleMatch = p.match(/^\/api\/jobs\/([^/]+)$/);
+
+  // ── PATCH /api/jobs/:id ────────────────────────────────────
+  if ((req.method === 'PATCH' || req.method === 'PUT') && singleMatch) {
+    const db = getDb();
+    try {
+      const id = singleMatch[1];
+      const task = db.prepare('SELECT * FROM scheduled_tasks WHERE id=?').get(id);
+      if (!task) return err(res, 'Not found', 404);
+      const body = await parseBody(req);
+      const sets = [], vals = [];
+      if (body.name !== undefined)           { sets.push('name=?');            vals.push(body.name); }
+      if (body.prompt !== undefined)         { sets.push('prompt=?');          vals.push(body.prompt); }
+      if (body.context_mode !== undefined)   { sets.push('context_mode=?');    vals.push(body.context_mode); }
+      const sv = body.schedule_value || body.cron_expr || body.schedule;
+      if (sv !== undefined) {
+        sets.push('schedule_value=?'); vals.push(sv);
+        sets.push('next_run=?');       vals.push(computeNextRun(sv));
+      }
+      if (body.enabled !== undefined) {
+        const en = body.enabled ? 1 : 0;
+        sets.push('enabled=?'); vals.push(en);
+        if (!en) { sets.push("status=?"); vals.push('disabled'); }
+        else     { sets.push("status=?"); vals.push('pending'); sets.push('next_run=?'); vals.push(computeNextRun(task.schedule_value)); }
+      }
+      if (sets.length) db.prepare(`UPDATE scheduled_tasks SET ${sets.join(',')} WHERE id=?`).run(...vals, id);
+      return json(res, db.prepare('SELECT * FROM scheduled_tasks WHERE id=?').get(id));
+    } catch(e) { return err(res, e.message); } finally { db.close(); }
+  }
+
+  // ── DELETE /api/jobs/:id ───────────────────────────────────
+  if (req.method === 'DELETE' && singleMatch) {
+    const db = getDb();
+    try {
+      const id = singleMatch[1];
+      const r = db.prepare('DELETE FROM scheduled_tasks WHERE id=?').run(id);
+      if (!r.changes) return err(res, 'Not found', 404);
+      return json(res, { deleted: true });
+    } finally { db.close(); }
+  }
+
+  // ── POST /api/jobs/:id/run ─────────────────────────────────
+  const runMatch = p.match(/^\/api\/jobs\/([^/]+)\/run$/);
+  if (req.method === 'POST' && runMatch) {
+    const db = getDb();
+    try {
+      const id = runMatch[1];
+      if (!db.prepare('SELECT id FROM scheduled_tasks WHERE id=?').get(id)) return err(res, 'Not found', 404);
+      db.prepare("UPDATE scheduled_tasks SET next_run=?, status='pending', enabled=1 WHERE id=?")
+        .run(new Date(Date.now() - 1000).toISOString(), id);
+      return json(res, { triggered: true, id });
+    } finally { db.close(); }
+  }
+
+  // ── GET /api/family ────────────────────────────────────────
+  if (req.method === 'GET' && p === '/api/family') {
+    const db = getDb();
+    try {
+      const rows = db.prepare(
+        "SELECT * FROM people WHERE tenant_id='benisrael' ORDER BY rowid"
+      ).all();
+      const people = rows.map(rowToPerson);
+      return json(res, { tenant_id: 'benisrael', people });
+    } finally { db.close(); }
+  }
+
+  // ── PUT /api/family/:id ────────────────────────────────────
+  const familyMatch = p.match(/^\/api\/family\/([^/]+)$/);
+  if ((req.method === 'PUT' || req.method === 'PATCH') && familyMatch) {
+    const db = getDb();
+    try {
+      const personId = familyMatch[1];
+      const existing = db.prepare('SELECT * FROM people WHERE id=?').get(personId);
+      if (!existing) return err(res, 'Person not found', 404);
+
+      const body = await parseBody(req);
+      const flat = flattenQuietHours(body);
+
+      // Build dynamic SET clause from provided fields
+      const allowedCols = [
+        'name', 'relation', 'emoji', 'color', 'contact_tier',
+        'phone', 'whatsapp', 'email', 'telegram', 'preferred_channel',
+        'quiet_hours_start', 'quiet_hours_end', 'language',
+        'jarvis_personality', 'jarvis_personality_custom', 'notes', 'tenant_id',
+      ];
+      const sets = [], vals = [];
+      for (const col of allowedCols) {
+        if (flat[col] !== undefined) {
+          sets.push(`${col}=?`);
+          vals.push(flat[col]);
+        }
+      }
+      if (sets.length) {
+        db.prepare(`UPDATE people SET ${sets.join(',')} WHERE id=?`).run(...vals, personId);
+      }
+
+      const updated = db.prepare('SELECT * FROM people WHERE id=?').get(personId);
+
+      // Reset + notify if preset changed, or if custom tone was explicitly saved (any value)
+      const personalityChanged = (flat.jarvis_personality !== undefined && flat.jarvis_personality !== existing.jarvis_personality)
+                               || (flat.jarvis_personality_custom !== undefined);
+      writePersonalityContext(updated); // Always sync file
+      if (personalityChanged) {
+        const folderName = NAME_TO_GROUP[updated.name.toLowerCase()];
+        if (folderName) {
+          // Clear session so next message starts fresh and reads new personality
+          db.prepare('DELETE FROM sessions WHERE group_folder = ?').run(folderName);
+          console.log(`[personality] Reset session for ${updated.name} (${folderName})`);
+          // Notify via NanoClaw IPC — look up the person's chat JID from registered_groups
+          try {
+            const reg = db.prepare('SELECT jid FROM registered_groups WHERE folder = ?').get(folderName);
+            if (reg?.jid) {
+              const presetName = {
+                classic_butler: 'British Butler 🎩', snarky_ai: 'Head Chef 👨‍🍳',
+                warm_friend: 'Warm Friend 🤗', coach: 'Sabra 🇮🇱', storyteller: 'Storyteller 📖',
+              }[updated.jarvis_personality] || updated.jarvis_personality;
+              const ipcDir = path.join(IPC_DIR, folderName, 'messages');
+              fs.mkdirSync(ipcDir, { recursive: true });
+              fs.writeFileSync(
+                path.join(ipcDir, `personality-notify-${Date.now()}.json`),
+                JSON.stringify({ type: 'message', chatJid: reg.jid, text: `Heads up — my personality was just updated to *${presetName}* mode. Fresh start from here 👋` }),
+                'utf8'
+              );
+              console.log(`[personality] IPC notify queued for ${updated.name} (${reg.jid})`);
+            }
+          } catch (e) {
+            console.error('[personality] IPC notify failed:', e.message);
+          }
+        }
+      }
+
+      // Dual-write: sync contact field changes to Moneypenny's family.json
+      const contactChanged = ['phone', 'whatsapp', 'email', 'name'].some(f => flat[f] !== undefined);
+      if (contactChanged) {
+        try {
+          const mpRaw = readJson(MP_FAMILY_PATH, []);
+          const mpArr = Array.isArray(mpRaw) ? mpRaw : mpRaw.people || [];
+          const lookupName = (existing.name || '').toLowerCase();
+          const mpEntry = mpArr.find(m => m.name?.toLowerCase() === lookupName);
+          if (mpEntry) {
+            // Update existing Moneypenny entry
+            if (flat.phone !== undefined || flat.whatsapp !== undefined) {
+              mpEntry.number = updated.phone || updated.whatsapp || mpEntry.number || '';
+            }
+            if (flat.email !== undefined) mpEntry.email = updated.email || null;
+            if (flat.name !== undefined) {
+              mpEntry.name = updated.name;
+              mpEntry.aliases = [updated.name.toLowerCase()];
+            }
+            writeJson(MP_FAMILY_PATH, mpArr);
+            console.log(`[dual-write] Updated Moneypenny contact for ${updated.name}`);
+          } else {
+            // Person not in Moneypenny yet — add them
+            mpArr.push({
+              name: updated.name,
+              number: updated.phone || updated.whatsapp || '',
+              email: updated.email || null,
+              relation: (updated.relation || 'other').toLowerCase(),
+              aliases: [updated.name.toLowerCase()],
+            });
+            writeJson(MP_FAMILY_PATH, mpArr);
+            console.log(`[dual-write] Added ${updated.name} to Moneypenny family.json`);
+          }
+        } catch (mpErr) {
+          console.error('[dual-write] Moneypenny sync failed (non-fatal):', mpErr.message);
+        }
+      }
+
+      return json(res, { ...rowToPerson(updated), session_reset: personalityChanged });
+    } catch(e) { return err(res, e.message); } finally { db.close(); }
+  }
+
+  // ── POST /api/family ───────────────────────────────────────
+  if (req.method === 'POST' && p === '/api/family') {
+    const db = getDb();
+    try {
+      const body = await parseBody(req);
+      if (!body.name) return err(res, 'name is required');
+      const flat = flattenQuietHours(body);
+      const id = flat.id || flat.name.toLowerCase().replace(/[^a-z0-9]/g, '_');
+      const tid = flat.tenant_id || 'benisrael';
+
+      // Check for duplicates
+      if (db.prepare('SELECT id FROM people WHERE id=?').get(id)) {
+        return err(res, `Person "${id}" already exists`);
+      }
+
+      db.prepare(`
+        INSERT INTO people (id, tenant_id, name, relation, emoji, color, contact_tier,
+          phone, whatsapp, email, telegram, preferred_channel,
+          quiet_hours_start, quiet_hours_end, language,
+          jarvis_personality, jarvis_personality_custom, notes, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `).run(
+        id, tid,
+        flat.name,
+        flat.relation || '',
+        flat.emoji || '',
+        flat.color || '#58a6ff',
+        flat.contact_tier ?? 6,
+        flat.phone || '',
+        flat.whatsapp || '',
+        flat.email || '',
+        flat.telegram || '',
+        flat.preferred_channel || 'whatsapp',
+        flat.quiet_hours_start || '22:00',
+        flat.quiet_hours_end || '07:00',
+        flat.language || 'en',
+        flat.jarvis_personality || 'classic_butler',
+        flat.jarvis_personality_custom || '',
+        flat.notes || '',
+        new Date().toISOString()
+      );
+
+      // Dual-write: also add to Moneypenny's family.json so it can contact them
+      try {
+        const mpRaw = readJson(MP_FAMILY_PATH, []);
+        const mpArr = Array.isArray(mpRaw) ? mpRaw : mpRaw.people || [];
+        if (!mpArr.find(m => m.name?.toLowerCase() === flat.name.toLowerCase())) {
+          mpArr.push({
+            name: flat.name,
+            number: flat.phone || flat.whatsapp || '',
+            email: flat.email || null,
+            relation: (flat.relation || 'other').toLowerCase(),
+            aliases: [flat.name.toLowerCase()],
+          });
+          writeJson(MP_FAMILY_PATH, mpArr);
+        }
+      } catch(mpErr) {
+        console.error('Moneypenny dual-write failed (non-fatal):', mpErr.message);
+      }
+
+      const inserted = db.prepare('SELECT * FROM people WHERE id=?').get(id);
+      return json(res, rowToPerson(inserted), 201);
+    } catch(e) { return err(res, e.message); } finally { db.close(); }
+  }
+
+  // ── GET /api/tenant ────────────────────────────────────────
+  if (req.method === 'GET' && p === '/api/tenant') {
+    const db = getDb();
+    try {
+      const row = db.prepare("SELECT * FROM tenants WHERE tenant_id='benisrael'").get();
+      if (!row) {
+        // Fallback: read from JSON if not in DB yet
+        return json(res, readJson(TENANT_PATH, {}));
+      }
+      return json(res, row);
+    } finally { db.close(); }
+  }
+
+  // ── GET /api/health/moneypenny ─────────────────────────────
+  // Proxy so browser never fetches a private IP (Chrome Private Network Access warning)
+  if (req.method === 'GET' && p === '/api/health/moneypenny') {
+    try {
+      const mpUrl = new URL(MONEYPENNY_URL);
+      const result = await new Promise((resolve, reject) => {
+        const r = http.request({ hostname: mpUrl.hostname, port: parseInt(mpUrl.port) || 80, path: '/health', method: 'GET' }, (res2) => {
+          resolve({ status: res2.statusCode });
+          res2.resume();
+        });
+        r.on('error', reject);
+        r.setTimeout(3000, () => { r.destroy(); reject(new Error('timeout')); });
+        r.end();
+      });
+      return json(res, { online: result.status < 500, status: result.status });
+    } catch { return json(res, { online: false }); }
+  }
+
+  // ── PATCH /api/tenant ──────────────────────────────────────
+  if (req.method === 'PATCH' && p === '/api/tenant') {
+    let body = '';
+    for await (const chunk of req) body += chunk;
+    let updates;
+    try { updates = JSON.parse(body); } catch { return err(res, 'Invalid JSON', 400); }
+    const allowed = ['owner', 'jarvis_name', 'moneypenny_power', 'timezone', 'language', 'weather_location'];
+    const fields = Object.keys(updates).filter(k => allowed.includes(k));
+    if (!fields.length) return err(res, 'No valid fields to update', 400);
+    const db = getDb();
+    try {
+      const setClauses = fields.map(f => `${f} = ?`).join(', ');
+      const values = fields.map(f => updates[f]);
+      db.prepare(`UPDATE tenants SET ${setClauses} WHERE tenant_id='benisrael'`).run(...values);
+      const row = db.prepare("SELECT * FROM tenants WHERE tenant_id='benisrael'").get();
+      if (updates.weather_location !== undefined) {
+        const tj = readJson(TENANT_PATH, {});
+        tj.weather_location = updates.weather_location;
+        fs.writeFileSync(TENANT_PATH, JSON.stringify(tj, null, 2) + '\n');
+      }
+      return json(res, row);
+    } finally { db.close(); }
+  }
+
+  // ── GET /api/person-context/:name ──────────────────────────
+  const personCtxMatch = p.match(/^\/api\/person-context\/([^/]+)$/);
+  if (req.method === 'GET' && personCtxMatch) {
+    const db = getDb();
+    try {
+      const nameParam = decodeURIComponent(personCtxMatch[1]);
+      const row = db.prepare(
+        "SELECT * FROM people WHERE LOWER(name) = LOWER(?)"
+      ).get(nameParam);
+      if (!row) return err(res, `Person "${nameParam}" not found`, 404);
+
+      return json(res, {
+        person_id: row.id,
+        name: row.name,
+        jarvis_personality: row.jarvis_personality || 'classic_butler',
+        jarvis_personality_custom: row.jarvis_personality_custom || '',
+        contact_tier: row.contact_tier,
+        preferred_channel: row.preferred_channel || 'whatsapp',
+        language: row.language || 'en',
+        prompt_injection: buildPromptInjection(row),
+      });
+    } finally { db.close(); }
+  }
+
+  // ── GET /api/moneypenny-family ─────────────────────────────
+  if (req.method === 'GET' && p === '/api/moneypenny-family') {
+    const data = readJson(MP_FAMILY_PATH, null);
+    if (!data) return err(res, 'Moneypenny family.json not found', 404);
+    return json(res, data);
+  }
+
+  // ── POST /api/proxy/:tool ──────────────────────────────────
+  const proxyMatch = p.match(/^\/api\/proxy\/([a-z_]+)$/);
+  if (req.method === 'POST' && proxyMatch) {
+    const tool = proxyMatch[1];
+    const allowed = ['contact','check_email','check_calendar','recall'];
+    if (!allowed.includes(tool)) return err(res, 'Unknown tool', 400);
+    try {
+      const body = await parseBody(req);
+      const result = await proxyMoneypenny(tool, body);
+      return json(res, result.body, result.status);
+    } catch(e) { return err(res, e.message, 502); }
+  }
+
+  res.writeHead(404, CORS); res.end('Not found');
+});
+
+// Write personality context files now that all functions are defined
+writeAllPersonalityContexts();
+
+server.listen(PORT, '0.0.0.0', () => {
+  console.log(`Job Manager API  http://0.0.0.0:${PORT}/api/jobs`);
+  console.log(`Job Manager UI   http://192.168.1.15:${PORT}/`);
+});
+process.on('SIGTERM', () => { server.close(); process.exit(0); });
+process.on('SIGINT',  () => { server.close(); process.exit(0); });

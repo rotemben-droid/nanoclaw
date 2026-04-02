@@ -1,0 +1,2377 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jarvis Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  darkMode: "class",
+  theme: {
+    extend: {
+      colors: {
+        "outline-variant": "#414752",
+        "tertiary": "#fabc45",
+        "primary-fixed": "#d3e4ff",
+        "on-secondary": "#00390d",
+        "on-surface-variant": "#c0c7d4",
+        "on-primary": "#00315c",
+        "on-error-container": "#ffdad6",
+        "secondary-container": "#27a640",
+        "outline": "#8b919d",
+        "on-surface": "#dfe2eb",
+        "surface-variant": "#31353c",
+        "secondary-fixed-dim": "#67df70",
+        "error": "#ffb4ab",
+        "primary-container": "#58a6ff",
+        "secondary-fixed": "#83fc89",
+        "on-primary-fixed": "#001c38",
+        "surface-tint": "#a2c9ff",
+        "surface-container-lowest": "#0a0e14",
+        "inverse-on-surface": "#2d3137",
+        "on-secondary-container": "#00320a",
+        "surface-container": "#1c2026",
+        "surface": "#10141a",
+        "secondary": "#67df70",
+        "primary": "#a2c9ff",
+        "on-error": "#690005",
+        "error-container": "#93000a",
+        "primary-fixed-dim": "#a2c9ff",
+        "tertiary-fixed-dim": "#fabc45",
+        "surface-dim": "#10141a",
+        "tertiary-fixed": "#ffdeaa",
+        "tertiary-container": "#d29922",
+        "on-tertiary": "#422c00",
+        "surface-container-high": "#262a31",
+        "surface-bright": "#353940",
+        "on-primary-container": "#003a6b",
+        "inverse-surface": "#dfe2eb",
+        "surface-container-highest": "#31353c",
+        "background": "#10141a",
+        "on-tertiary-fixed": "#271900",
+        "on-background": "#dfe2eb",
+        "surface-container-low": "#181c22",
+        "inverse-primary": "#0060aa"
+      },
+      fontFamily: { "headline": ["Manrope"], "body": ["Inter"], "label": ["Inter"] },
+      borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+    },
+  },
+}
+</script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: #10141a; color: #dfe2eb; min-height: 100vh; }
+  h1, h2, h3 { font-family: 'Manrope', sans-serif; }
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; vertical-align: middle; }
+  .mso-filled { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+
+  /* Background glow */
+  .bg-glow-primary { position: fixed; top: -120px; left: -120px; width: 500px; height: 500px; border-radius: 50%; background: rgba(162,201,255,0.05); filter: blur(120px); pointer-events: none; z-index: 0; }
+  .bg-glow-secondary { position: fixed; bottom: -120px; right: -120px; width: 500px; height: 500px; border-radius: 50%; background: rgba(103,223,112,0.05); filter: blur(120px); pointer-events: none; z-index: 0; }
+
+  /* Status chips */
+  .chip-success { background: rgba(103,223,112,0.2); color: #67df70; }
+  .chip-error { background: rgba(255,180,171,0.2); color: #ffb4ab; }
+  .chip-warning { background: rgba(250,188,69,0.2); color: #fabc45; }
+  .chip-info { background: rgba(162,201,255,0.2); color: #a2c9ff; }
+  .chip-muted { background: rgba(192,199,212,0.15); color: #c0c7d4; }
+
+  /* Card hover */
+  .card-hover { transition: background 0.15s, border-color 0.15s; }
+  .card-hover:hover { background: #262a31 !important; border-left: 2px solid #a2c9ff; }
+
+  /* Group hover actions */
+  .group-hover-actions { opacity: 0; transition: opacity 0.15s; }
+  .group:hover .group-hover-actions { opacity: 1; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #414752; border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: #8b919d; }
+
+  /* Modal overlay */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(10,14,20,0.7); backdrop-filter: blur(8px); z-index: 1000; align-items: center; justify-content: center; }
+  .modal-overlay.open { display: flex; }
+
+  /* Toast */
+  .toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 2000; display: flex; flex-direction: column; gap: 8px; }
+  .toast-item { padding: 12px 20px; border-radius: 12px; font-size: 14px; font-weight: 500; animation: slideIn 0.3s ease; }
+  @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+  /* Sidebar active */
+  .sidebar-item { transition: background 0.1s, border-color 0.1s; border-left: 2px solid transparent; }
+  .sidebar-item.active { background: #262a31; border-left-color: #a2c9ff; }
+  .sidebar-item.active .sidebar-label { color: #a2c9ff; }
+
+  /* Gradient ring for avatar */
+  .avatar-ring { background: linear-gradient(135deg, #a2c9ff 0%, #67df70 50%, #fabc45 100%); padding: 3px; border-radius: 50%; }
+  .avatar-inner { background: #10141a; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+
+  /* Collapsible category */
+  .category-content { max-height: 2000px; overflow: hidden; transition: max-height 0.3s ease; }
+  .category-content.collapsed { max-height: 0; }
+
+  /* Agent card compact */
+  .agent-card { height: 52px; display: flex; align-items: center; padding: 0 12px; gap: 10px; cursor: pointer; transition: background 0.1s, border-color 0.1s; border-left: 2px solid transparent; }
+  .agent-card:hover { background: #262a31; border-left-color: #a2c9ff; }
+  .agent-card .card-actions { opacity: 0; transition: opacity 0.15s; display: flex; gap: 4px; }
+  .agent-card:hover .card-actions { opacity: 1; }
+
+  /* Landing card */
+  .landing-card { transition: background 0.15s, border-color 0.15s; cursor: pointer; }
+  .landing-card:hover { background: #262a31 !important; border-left: 2px solid #a2c9ff; }
+
+  /* Ghost border */
+  .ghost-border { border: 1px solid rgba(65,71,82,0.15); }
+
+  /* Dashed add card */
+  .add-card { border: 2px dashed #414752; cursor: pointer; transition: border-color 0.15s, background 0.15s; }
+  .add-card:hover { border-color: #a2c9ff; background: rgba(162,201,255,0.05); }
+
+  /* Schedule pill */
+  .sched-pill { cursor: pointer; transition: all 0.1s; }
+  .sched-pill.picked { background: rgba(162,201,255,0.2); color: #a2c9ff; border-color: #a2c9ff; }
+
+  /* Tier button */
+  .tier-btn { transition: all 0.1s; cursor: pointer; }
+  .tier-btn.active { outline: 2px solid var(--tc, #a2c9ff); outline-offset: 2px; }
+
+  /* Preset card in wizard */
+  .preset-card { cursor: pointer; transition: all 0.15s; }
+  .preset-card.active { outline: 2px solid #a2c9ff; outline-offset: 2px; }
+
+  /* Timeline thread */
+  .tl-item { position: relative; padding-left: 28px; }
+  .tl-item::before { content: ''; position: absolute; left: 8px; top: 0; bottom: 0; width: 2px; background: #262a31; }
+  .tl-item::after { content: ''; position: absolute; left: 4px; top: 18px; width: 10px; height: 10px; border-radius: 50%; background: #262a31; border: 2px solid #414752; }
+  .tl-item.upcoming::after { background: #a2c9ff; border-color: #a2c9ff; }
+  .tl-item.failed::after { background: #ffb4ab; border-color: #ffb4ab; }
+
+  /* Monospace console */
+  .console-output { font-family: 'JetBrains Mono', 'Fira Code', monospace, monospace; font-size: 12px; line-height: 1.6; }
+
+  /* Text clamping */
+  .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+</style>
+</head>
+<body class="bg-background text-on-background overflow-x-hidden">
+
+<!-- Background glow -->
+<div class="bg-glow-primary"></div>
+<div class="bg-glow-secondary"></div>
+
+<!-- ========== SCREEN: LANDING ========== -->
+<div id="screen-landing" class="min-h-screen flex flex-col items-center justify-center relative z-10 px-4">
+  <div class="flex items-center gap-3 mb-8">
+    <span class="material-symbols-outlined text-primary text-3xl mso-filled">bolt</span>
+    <span class="font-headline text-xl font-bold tracking-tight text-on-surface">Jarvis Portal</span>
+    <span class="chip-success text-xs font-semibold px-3 py-1 rounded-full ml-2">System Online</span>
+  </div>
+
+  <h1 id="landing-title" class="font-headline text-4xl font-extrabold tracking-tight text-on-surface mb-2"></h1>
+  <p class="text-on-surface-variant text-base mb-8">Family Nexus</p>
+
+  <div class="flex gap-6 mb-8" id="landing-stats">
+    <div class="text-center">
+      <div id="ls-members" class="font-headline text-3xl font-extrabold text-primary">0</div>
+      <div class="text-xs text-on-surface-variant mt-1">Members</div>
+    </div>
+    <div class="text-center">
+      <div id="ls-jobs" class="font-headline text-3xl font-extrabold text-secondary">0</div>
+      <div class="text-xs text-on-surface-variant mt-1">Active Jobs</div>
+    </div>
+  </div>
+
+  <div id="landing-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-4xl w-full mb-8"></div>
+
+  <button onclick="enterPortal()" class="px-8 py-3 rounded-xl bg-primary text-on-primary font-headline font-bold text-base hover:opacity-90 transition-opacity">
+    Enter Portal <span class="material-symbols-outlined text-sm ml-1">arrow_forward</span>
+  </button>
+</div>
+
+<!-- ========== SCREEN: APP ========== -->
+<div id="screen-app" class="hidden min-h-screen relative z-10">
+
+  <!-- Left Sidebar -->
+  <aside class="fixed left-0 top-0 bottom-0 w-64 bg-surface-container-low z-30 flex flex-col overflow-y-auto">
+    <!-- Logo -->
+    <div class="flex items-center gap-3 px-5 py-5 cursor-pointer hover:opacity-80 transition-opacity" onclick="goHome()" title="Go to Family Nexus">
+      <span class="material-symbols-outlined text-primary text-2xl mso-filled">bolt</span>
+      <div>
+        <div class="font-headline font-bold text-base text-on-surface">Jarvis AI</div>
+        <div id="sidebar-status" class="text-xs font-semibold text-secondary">System Online</div>
+      </div>
+    </div>
+
+    <!-- Home nav -->
+    <div class="px-3 mb-1">
+      <button onclick="goHome()" id="nav-home" class="sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high w-full text-left">
+        <span class="material-symbols-outlined text-xl">home</span>
+        <span class="sidebar-label">Family Nexus</span>
+      </button>
+    </div>
+
+    <!-- Family section -->
+    <div class="px-3 mb-2">
+      <div class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider px-2 mb-2">Family</div>
+      <div id="sidebar-family" class="flex flex-col gap-0.5"></div>
+    </div>
+
+    <!-- Divider -->
+    <div class="mx-4 my-3 h-px bg-surface-container-high"></div>
+
+    <!-- Nav items -->
+    <div class="px-3 flex flex-col gap-0.5">
+      <button onclick="switchTo('activity')" id="nav-activity" class="sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high">
+        <span class="material-symbols-outlined text-xl">monitor_heart</span>
+        <span class="sidebar-label">Activity Stream</span>
+      </button>
+      <button onclick="switchTo('timeline')" id="nav-timeline" class="sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high">
+        <span class="material-symbols-outlined text-xl">timeline</span>
+        <span class="sidebar-label">System Timeline</span>
+      </button>
+      <button onclick="switchTo('syslog')" id="nav-syslog" class="sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high">
+        <span class="material-symbols-outlined text-xl">terminal</span>
+        <span class="sidebar-label">System Log</span>
+      </button>
+    </div>
+
+    <!-- Bottom -->
+    <div class="mt-auto px-3 pb-4 flex flex-col gap-0.5">
+      <div class="mx-4 my-3 h-px bg-surface-container-high"></div>
+      <button onclick="openSearch()" class="sidebar-item flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high">
+        <span class="material-symbols-outlined text-xl">search</span>
+        <span class="sidebar-label">Search</span>
+        <kbd class="ml-auto text-xs text-outline bg-surface-container-high px-1.5 py-0.5 rounded">Ctrl+K</kbd>
+      </button>
+      <button onclick="showShortcuts()" class="sidebar-item flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high">
+        <span class="material-symbols-outlined text-xl">help</span>
+        <span class="sidebar-label">Shortcuts</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Top Bar -->
+  <header class="fixed top-0 left-64 right-0 h-16 bg-surface-container-low z-20 flex items-center px-6 gap-4">
+    <h2 id="topbar-title" class="font-headline font-bold text-lg text-on-surface"></h2>
+    <div class="flex-1"></div>
+    <button onclick="openSearch()" class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface-container-high text-on-surface-variant text-sm hover:text-on-surface transition-colors">
+      <span class="material-symbols-outlined text-lg">search</span>
+      <span>Search...</span>
+      <kbd class="text-xs text-outline bg-surface-container px-1.5 py-0.5 rounded ml-2">Ctrl+K</kbd>
+    </button>
+    <button class="relative p-2 rounded-lg hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors">
+      <span class="material-symbols-outlined text-xl">notifications</span>
+    </button>
+    <div id="mp-badge" onclick="toggleMpTip()" class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface-container-high cursor-pointer text-sm font-semibold relative">
+      <span id="mp-dot" class="w-2 h-2 rounded-full bg-outline"></span>
+      <span id="mp-label" class="text-on-surface-variant">MP</span>
+      <div id="mp-tooltip" class="hidden absolute top-full right-0 mt-2 bg-surface-container-low rounded-xl p-4 shadow-xl min-w-[220px] text-sm z-50"></div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="ml-64 pt-16 min-h-screen">
+
+    <!-- View: Person Profile -->
+    <div id="view-person" class="hidden p-6">
+      <div class="flex gap-6">
+        <!-- Left column 65% -->
+        <div class="flex-1 min-w-0" style="flex: 0 0 65%;">
+          <!-- Profile header strip -->
+          <div id="person-header" class="mb-6"></div>
+          <!-- Calendar strip -->
+          <div id="person-calendar" class="mb-6"></div>
+          <!-- Agent categories -->
+          <div id="person-agents"></div>
+        </div>
+        <!-- Right column 35% -->
+        <div class="w-[35%] flex-shrink-0 flex flex-col gap-4">
+          <!-- Execution status -->
+          <div id="person-exec-status" class="bg-surface-container-low rounded-xl p-5"></div>
+          <!-- Recent activity -->
+          <div id="person-recent" class="bg-surface-container-low rounded-xl p-5"></div>
+          <!-- Quick actions -->
+          <div id="person-quick-actions" class="flex flex-col gap-2"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- View: Activity Stream -->
+    <div id="view-activity" class="hidden p-6">
+      <div class="flex gap-6">
+        <div class="flex-1 min-w-0">
+          <h2 class="font-headline text-2xl font-extrabold text-on-surface mb-4">Activity Stream</h2>
+          <div id="activity-filters" class="flex flex-wrap gap-2 mb-4"></div>
+          <div id="activity-table" class="bg-surface-container-low rounded-xl overflow-hidden"></div>
+        </div>
+        <div class="w-80 flex-shrink-0">
+          <div class="bg-surface-container-low rounded-xl p-4 sticky top-20">
+            <h3 class="font-headline font-bold text-sm text-on-surface-variant uppercase tracking-wider mb-3">Live Console</h3>
+            <div id="activity-console" class="console-output text-on-surface-variant max-h-[500px] overflow-y-auto"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- View: System Timeline -->
+    <div id="view-timeline" class="hidden p-6">
+      <h2 class="font-headline text-2xl font-extrabold text-on-surface mb-4">System Timeline</h2>
+      <div id="timeline-stats" class="flex gap-4 mb-6"></div>
+      <div class="flex gap-6">
+        <div class="flex-1 min-w-0" id="timeline-thread"></div>
+        <div class="w-80 flex-shrink-0 flex flex-col gap-4">
+          <div id="timeline-density" class="bg-surface-container-low rounded-xl p-4"></div>
+          <div id="timeline-upcoming" class="bg-surface-container-low rounded-xl p-4"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- View: System Log -->
+    <div id="view-syslog" class="hidden p-6">
+      <h2 class="font-headline text-2xl font-extrabold text-on-surface mb-4">System Log</h2>
+      <div id="syslog-filters" class="mb-4"></div>
+      <div id="syslog-table" class="bg-surface-container-low rounded-xl overflow-hidden"></div>
+      <div id="syslog-pagination" class="flex items-center justify-center gap-4 mt-4"></div>
+    </div>
+  </main>
+</div>
+
+<!-- ========== MODALS ========== -->
+
+<!-- Job Edit/Create Modal -->
+<div class="modal-overlay" id="job-modal" onclick="bgClose('job-modal',event)">
+  <div class="bg-surface-container-low rounded-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
+    <div class="flex items-center justify-between px-6 pt-5 pb-3">
+      <h3 class="font-headline font-bold text-lg text-on-surface" id="jm-title">New Automation</h3>
+      <button class="text-on-surface-variant hover:text-on-surface p-1" onclick="closeModal('job-modal')">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    <div class="px-6 pb-4 flex flex-col gap-4">
+      <div id="jm-dupe-warn" class="hidden bg-tertiary/10 text-tertiary text-sm p-3 rounded-xl"></div>
+      <div class="flex gap-3">
+        <div class="flex-1">
+          <label class="block text-xs font-semibold text-on-surface-variant mb-1">Name</label>
+          <input id="jf-name" type="text" placeholder="e.g. Morning briefing" class="w-full bg-surface-container-high text-on-surface rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/40">
+        </div>
+        <div class="w-36">
+          <label class="block text-xs font-semibold text-on-surface-variant mb-1">For</label>
+          <select id="jf-person" class="w-full bg-surface-container-high text-on-surface rounded-lg px-3 py-2 text-sm outline-none"></select>
+        </div>
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-on-surface-variant mb-1">When does this run?</label>
+        <div id="sched-pills" class="flex flex-wrap gap-1.5 mb-2"></div>
+        <div id="sched-display" class="text-sm text-on-surface-variant mb-1">Pick a schedule above</div>
+        <div id="sched-next-fires" class="text-xs text-on-surface-variant"></div>
+        <button onclick="toggleAdv()" class="text-xs text-primary hover:underline mt-1">Advanced — enter cron expression</button>
+        <div id="cron-adv" class="hidden mt-2">
+          <input id="jf-cron" type="text" placeholder="0 7 * * *" oninput="cronInput()" class="w-full bg-surface-container-high text-on-surface rounded-lg px-3 py-2 text-sm outline-none font-mono">
+          <div id="cron-hint" class="text-xs text-on-surface-variant mt-1"></div>
+        </div>
+        <input type="hidden" id="jf-cron-val">
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-on-surface-variant mb-1">What should Jarvis do?</label>
+        <textarea id="jf-prompt" rows="12" placeholder="Describe exactly what Jarvis should do. Be specific: who to contact, what to say, what format, what tone, when to escalate. The more detail, the better the automation." oninput="document.getElementById('jf-prompt-chars').textContent=this.value.length+' chars'" class="w-full bg-surface-container-high text-on-surface rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/40 resize-y font-body leading-relaxed"></textarea>
+        <div class="flex items-center justify-between text-xs text-on-surface-variant mt-1.5">
+          <span class="text-primary/60">Ctrl+Enter to save</span>
+          <span id="jf-prompt-chars">0 chars</span>
+        </div>
+      </div>
+    </div>
+    <div class="flex items-center gap-2 px-6 pb-5">
+      <button id="jm-del" class="hidden text-error text-sm font-semibold hover:underline mr-auto" onclick="deleteJob()">Delete</button>
+      <button id="jm-clone" class="hidden text-on-surface-variant text-sm font-semibold hover:text-on-surface" onclick="cloneJob()">Clone</button>
+      <div class="flex-1"></div>
+      <button onclick="closeModal('job-modal')" class="px-4 py-2 rounded-lg text-sm font-semibold text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high">Cancel</button>
+      <button onclick="saveJob()" class="px-4 py-2 rounded-lg text-sm font-semibold bg-primary text-on-primary hover:opacity-90">Save Automation</button>
+    </div>
+  </div>
+</div>
+
+<!-- Agent Type Picker Modal — Inspiration Gallery -->
+<div class="modal-overlay" id="agent-modal" onclick="bgClose('agent-modal',event)">
+  <div class="bg-surface-container-low rounded-2xl w-full max-w-5xl mx-4 max-h-[92vh] flex flex-col" style="height:92vh" onclick="event.stopPropagation()">
+    <!-- Header -->
+    <div class="flex items-start justify-between px-6 pt-5 pb-3 flex-shrink-0">
+      <div>
+        <h3 class="font-headline font-bold text-xl text-on-surface" id="am-title">Add an Agent</h3>
+        <p class="text-sm text-on-surface-variant mt-0.5">Pick from curated ideas below, or build a custom one from scratch</p>
+      </div>
+      <button class="text-on-surface-variant hover:text-on-surface p-1 mt-1 flex-shrink-0" onclick="closeModal('agent-modal')">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    <!-- Search -->
+    <div class="px-6 pb-3 flex-shrink-0">
+      <input id="at-search" type="text" placeholder="Search agent ideas..." oninput="filterAtGrid(this.value)" class="w-full bg-surface-container-high text-on-surface rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/40">
+    </div>
+    <!-- Category pills -->
+    <div id="at-cat-pills" class="px-6 pb-3 flex-shrink-0 flex flex-wrap gap-1.5"></div>
+    <!-- Grid -->
+    <div class="px-6 pb-6 overflow-y-auto flex-1">
+      <div id="at-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Person Modal -->
+<div class="modal-overlay" id="person-modal" onclick="bgClose('person-modal',event)">
+  <div class="bg-surface-container-low rounded-2xl max-w-xl w-full mx-4 max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
+    <div class="flex items-center justify-between px-6 pt-5 pb-3">
+      <h3 class="font-headline font-bold text-lg text-on-surface" id="pm-title">Edit Profile</h3>
+      <button class="text-on-surface-variant hover:text-on-surface p-1" onclick="closeModal('person-modal')">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    <div class="px-6 pb-4 flex flex-col gap-4">
+      <input type="hidden" id="pm-id">
+      <div class="flex gap-3">
+        <div class="flex-1"><label class="block text-xs font-semibold text-on-surface-variant mb-1">Name</label><input id="pm-name" type="text" class="w-full bg-surface-container-high text-on-surface rounded-lg px-3 py-2 text-sm outline-none"></div>
+        <div class="w-40"><label class="block text-xs font-semibold text-on-surface-variant mb-1">Relationship</label><select id="pm-rel" class="w-full bg-surface-container-high text-on-surface rounded-lg px-3 py-2 text-sm outline-none"><option value="Self">Self</option><option value="Spouse">Spouse / Partner</option><option value="Son">Son</option><option value="Daughter">Daughter</option><option value="Parent">Parent</option><option value="Friend">Friend</option><option value="Colleague">Colleague</option><option value="Other">Other</option></select></div>
+      </div>
+      <div class="flex gap-3">
+        <div class="flex-1"><label class="block text-xs font-semibold text-on-surface-variant mb-1">Phone</label><input id="pm-phone" type="tel" placeholder="+1 555 000 0000" class="w-full bg-surface-container-high text-on-surface rounded-lg px-3 py-2 text-sm outline-none"></div>
+        <div class="flex-1"><label class="block text-xs font-semibold text-on-surface-variant mb-1">WhatsApp</label><input id="pm-whatsapp" type="tel" placeholder="+1 555 000 0000" class="w-full bg-surface-container-high text-on-surface rounded-lg px-3 py-2 text-sm outline-none"></div>
+      </div>
+      <div class="flex gap-3">
+        <div class="flex-1"><label class="block text-xs font-semibold text-on-surface-variant mb-1">Email</label><input id="pm-email" type="email" placeholder="name@example.com" class="w-full bg-surface-container-high text-on-surface rounded-lg px-3 py-2 text-sm outline-none"></div>
+        <div class="flex-1"><label class="block text-xs font-semibold text-on-surface-variant mb-1">Telegram</label><input id="pm-telegram" type="text" placeholder="@handle or tg:chatid" class="w-full bg-surface-container-high text-on-surface rounded-lg px-3 py-2 text-sm outline-none"></div>
+      </div>
+      <div class="flex gap-3">
+        <div class="flex-1"><label class="block text-xs font-semibold text-on-surface-variant mb-1">Quiet hours start</label><input id="pm-quiet-start" type="time" class="w-full bg-surface-container-high text-on-surface rounded-lg px-3 py-2 text-sm outline-none"></div>
+        <div class="flex-1"><label class="block text-xs font-semibold text-on-surface-variant mb-1">Quiet hours end</label><input id="pm-quiet-end" type="time" class="w-full bg-surface-container-high text-on-surface rounded-lg px-3 py-2 text-sm outline-none"></div>
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-on-surface-variant mb-2">Contact Permission</label>
+        <div id="pm-tiers" class="flex flex-wrap gap-2"></div>
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-on-surface-variant mb-1">Profile Photo URL</label>
+        <div class="flex gap-2 items-center">
+          <input id="pm-photo" type="url" placeholder="https://example.com/photo.jpg" class="flex-1 bg-surface-container-high text-on-surface rounded-lg px-3 py-2 text-sm outline-none">
+          <div id="pm-photo-preview" class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface-variant overflow-hidden flex-shrink-0">
+            <span class="material-symbols-outlined text-lg">person</span>
+          </div>
+        </div>
+        <div class="text-xs text-on-surface-variant mt-1">Paste any image URL. Used in family home page and profile header.</div>
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-on-surface-variant mb-1">Notes</label>
+        <input id="pm-notes" type="text" placeholder="e.g. Loves sports updates" class="w-full bg-surface-container-high text-on-surface rounded-lg px-3 py-2 text-sm outline-none">
+      </div>
+    </div>
+    <div class="flex items-center justify-end gap-2 px-6 pb-5">
+      <button onclick="closeModal('person-modal')" class="px-4 py-2 rounded-lg text-sm font-semibold text-on-surface-variant hover:text-on-surface">Cancel</button>
+      <button onclick="savePerson()" class="px-4 py-2 rounded-lg text-sm font-semibold bg-primary text-on-primary hover:opacity-90">Save Profile</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Person Wizard -->
+<div class="modal-overlay" id="addperson-modal" onclick="bgClose('addperson-modal',event)">
+  <div class="bg-surface-container-low rounded-2xl max-w-xl w-full mx-4 max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
+    <div class="flex items-center justify-between px-6 pt-5 pb-3">
+      <h3 class="font-headline font-bold text-lg text-on-surface" id="ap-modal-title">Add a Family Member</h3>
+      <button class="text-on-surface-variant hover:text-on-surface p-1" onclick="closeModal('addperson-modal')">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    <div class="px-6 pb-4">
+      <!-- Step bar -->
+      <div class="flex items-center justify-center gap-2 mb-6" id="ap-step-bar">
+        <div class="ap-sdot active flex flex-col items-center cursor-pointer" id="apdot-1" onclick="apGoStep(1)"><div class="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center text-sm font-bold">1</div><div class="text-xs mt-1 text-primary">Identity</div></div>
+        <div class="w-8 h-0.5 bg-surface-container-high ap-sline" id="apline-1"></div>
+        <div class="ap-sdot flex flex-col items-center cursor-pointer" id="apdot-2" onclick="apGoStep(2)"><div class="w-8 h-8 rounded-full bg-surface-container-high text-on-surface-variant flex items-center justify-center text-sm font-bold">2</div><div class="text-xs mt-1 text-on-surface-variant">Contact</div></div>
+        <div class="w-8 h-0.5 bg-surface-container-high ap-sline" id="apline-2"></div>
+        <div class="ap-sdot flex flex-col items-center cursor-pointer" id="apdot-3" onclick="apGoStep(3)"><div class="w-8 h-8 rounded-full bg-surface-container-high text-on-surface-variant flex items-center justify-center text-sm font-bold">3</div><div class="text-xs mt-1 text-on-surface-variant">Permissions</div></div>
+        <div class="w-8 h-0.5 bg-surface-container-high ap-sline" id="apline-3"></div>
+        <div class="ap-sdot flex flex-col items-center cursor-pointer" id="apdot-4" onclick="apGoStep(4)"><div class="w-8 h-8 rounded-full bg-surface-container-high text-on-surface-variant flex items-center justify-center text-sm font-bold">4</div><div class="text-xs mt-1 text-on-surface-variant">Preview</div></div>
+      </div>
+      <!-- Steps -->
+      <div id="ap-step-1" class="ap-step">
+        <div class="mb-4"><label class="block font-headline font-bold text-base mb-2">What's their name?</label><input id="ap-name" type="text" placeholder="First name" oninput="apData.name=this.value.trim()" class="w-full bg-surface-container-high text-on-surface rounded-lg px-3 py-2.5 text-lg outline-none"></div>
+        <div class="mb-4"><div class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-2">Relationship</div><div id="ap-rel-grid" class="flex flex-wrap gap-2"></div></div>
+        <div class="mb-4"><div class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-2">Pick an emoji</div><div id="ap-emoji-grid" class="flex flex-wrap gap-2"></div></div>
+        <div><div class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-2">Pick a color</div><div id="ap-color-row" class="flex flex-wrap gap-2"></div></div>
+      </div>
+      <div id="ap-step-2" class="ap-step hidden">
+        <div class="flex gap-3 mb-3"><div class="flex-1"><label class="block text-xs font-semibold text-on-surface-variant mb-1">Phone</label><input id="ap-phone" type="tel" placeholder="+1 555 000 0000" oninput="apPhoneInput(this.value)" class="w-full bg-surface-container-high text-on-surface rounded-lg px-3 py-2 text-sm outline-none"></div><div class="flex-1"><label class="block text-xs font-semibold text-on-surface-variant mb-1">WhatsApp</label><input id="ap-whatsapp" type="tel" placeholder="+1 555 000 0000" oninput="apData.whatsapp=this.value.trim()" class="w-full bg-surface-container-high text-on-surface rounded-lg px-3 py-2 text-sm outline-none"></div></div>
+        <div class="flex gap-3 mb-3"><div class="flex-1"><label class="block text-xs font-semibold text-on-surface-variant mb-1">Email</label><input id="ap-email" type="email" placeholder="name@example.com" oninput="apData.email=this.value.trim()" class="w-full bg-surface-container-high text-on-surface rounded-lg px-3 py-2 text-sm outline-none"></div><div class="flex-1"><label class="block text-xs font-semibold text-on-surface-variant mb-1">Telegram</label><input id="ap-telegram" type="text" placeholder="@handle or tg:123456" oninput="apData.telegram=this.value.trim()" class="w-full bg-surface-container-high text-on-surface rounded-lg px-3 py-2 text-sm outline-none"></div></div>
+        <div class="mb-3"><div class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-2">Preferred channel</div><div id="ap-channel-row" class="flex flex-wrap gap-2"></div></div>
+        <div><div class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-2">Quiet hours</div><div class="flex items-center gap-3"><input id="ap-quiet-start" type="time" value="22:00" onchange="apData.quiet_start=this.value" class="bg-surface-container-high text-on-surface rounded-lg px-3 py-2 text-sm outline-none"><span class="text-on-surface-variant font-semibold">to</span><input id="ap-quiet-end" type="time" value="07:00" onchange="apData.quiet_end=this.value" class="bg-surface-container-high text-on-surface rounded-lg px-3 py-2 text-sm outline-none"></div></div>
+      </div>
+      <div id="ap-step-3" class="ap-step hidden">
+        <div class="mb-4"><div class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-2">Contact permission level</div><div id="ap-tiers" class="flex flex-wrap gap-2"></div><div id="ap-blocked-warn" class="hidden mt-2 text-error text-sm">Jarvis will <strong>never</strong> contact this person.</div></div>
+        <div class="mb-4"><div class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-2">Jarvis personality</div><div id="ap-presets" class="grid grid-cols-2 gap-2"></div></div>
+        <div><div class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-2">Language</div><div id="ap-lang-row" class="flex flex-wrap gap-2"></div></div>
+      </div>
+      <div id="ap-step-4" class="ap-step hidden">
+        <div class="text-center text-on-surface-variant text-sm mb-4">Here's how they'll appear. Everything can be edited later.</div>
+        <div id="ap-preview-card" class="bg-surface-container-high rounded-xl p-6 text-center"></div>
+      </div>
+    </div>
+    <div class="flex items-center gap-2 px-6 pb-5">
+      <button id="ap-back-btn" onclick="apBack()" class="hidden px-4 py-2 rounded-lg text-sm font-semibold text-on-surface-variant hover:text-on-surface">Back</button>
+      <div class="flex-1"></div>
+      <button onclick="closeModal('addperson-modal')" class="px-4 py-2 rounded-lg text-sm font-semibold text-on-surface-variant hover:text-on-surface">Cancel</button>
+      <button id="ap-next-btn" onclick="apNext()" class="px-4 py-2 rounded-lg text-sm font-semibold bg-primary text-on-primary hover:opacity-90">Next</button>
+    </div>
+  </div>
+</div>
+
+<!-- Vacation Modal -->
+<div class="modal-overlay" id="vacation-modal" onclick="bgClose('vacation-modal',event)">
+  <div class="bg-surface-container-low rounded-2xl max-w-sm w-full mx-4" onclick="event.stopPropagation()">
+    <div class="flex items-center justify-between px-6 pt-5 pb-3">
+      <h3 class="font-headline font-bold text-lg text-on-surface" id="vac-title">Vacation Mode</h3>
+      <button class="text-on-surface-variant hover:text-on-surface p-1" onclick="closeModal('vacation-modal')"><span class="material-symbols-outlined">close</span></button>
+    </div>
+    <div class="px-6 pb-4">
+      <div id="vac-desc" class="text-sm text-on-surface-variant mb-3">Pause automations. Pick a return date:</div>
+      <label class="block text-xs font-semibold text-on-surface-variant mb-1">Resume on</label>
+      <input id="vac-date" type="date" class="w-full bg-surface-container-high text-on-surface rounded-lg px-3 py-2 text-sm outline-none">
+    </div>
+    <div class="flex items-center justify-end gap-2 px-6 pb-5">
+      <button onclick="closeModal('vacation-modal')" class="px-4 py-2 rounded-lg text-sm font-semibold text-on-surface-variant hover:text-on-surface">Cancel</button>
+      <button onclick="saveVacation()" class="px-4 py-2 rounded-lg text-sm font-semibold bg-primary text-on-primary hover:opacity-90">Activate Vacation</button>
+    </div>
+  </div>
+</div>
+
+<!-- Quick Action Modal -->
+<div class="modal-overlay" id="qa-modal" onclick="bgClose('qa-modal',event)">
+  <div class="bg-surface-container-low rounded-2xl max-w-lg w-full mx-4 max-h-[85vh] overflow-y-auto" onclick="event.stopPropagation()">
+    <div class="flex items-center justify-between px-6 pt-5 pb-3">
+      <h3 class="font-headline font-bold text-lg text-on-surface" id="qa-title">Quick Action</h3>
+      <button class="text-on-surface-variant hover:text-on-surface p-1" onclick="closeModal('qa-modal')"><span class="material-symbols-outlined">close</span></button>
+    </div>
+    <div class="px-6 pb-4" id="qa-body"></div>
+    <div class="flex items-center justify-end px-6 pb-5">
+      <button onclick="closeModal('qa-modal')" class="px-4 py-2 rounded-lg text-sm font-semibold text-on-surface-variant hover:text-on-surface">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Search Overlay -->
+<div id="search-overlay" class="hidden fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-start justify-center pt-[15vh]" onclick="if(event.target===this)closeSearch()">
+  <div class="bg-surface-container-low rounded-2xl max-w-lg w-full mx-4 overflow-hidden shadow-2xl">
+    <div class="flex items-center gap-3 px-5 py-4 bg-surface-container-high">
+      <span class="material-symbols-outlined text-on-surface-variant text-xl">search</span>
+      <input id="search-input" type="text" placeholder="Search jobs, people, capabilities..." oninput="onSearchInput()" class="flex-1 bg-transparent text-on-surface text-base outline-none">
+      <kbd class="text-xs text-outline bg-surface-container px-1.5 py-0.5 rounded">ESC</kbd>
+    </div>
+    <div id="search-results" class="max-h-80 overflow-y-auto"></div>
+  </div>
+</div>
+
+<!-- Toast Container -->
+<div id="toasts" class="toast-container"></div>
+
+<!-- ========== JAVASCRIPT ========== -->
+<script>
+/* ================================================================
+   CONSTANTS (copied from v1)
+================================================================ */
+const API = window.location.origin + '/api';
+
+const TIERS = [
+  {t:0,icon:'\u{1F6AB}',name:'Blocked',color:'#f85149',desc:'No contact, ever'},
+  {t:1,icon:'\u{1F441}',name:'Read Only',color:'#8b949e',desc:'Read email & calendar only'},
+  {t:2,icon:'\u{1F6A8}',name:'Alerts',color:'#d29922',desc:'Urgent/emergency only'},
+  {t:3,icon:'\u{1F4AC}',name:'Messages',color:'#a371f7',desc:'WhatsApp & Telegram only'},
+  {t:4,icon:'\u{1F4E7}',name:'Email Only',color:'#58a6ff',desc:'Email only, no calls'},
+  {t:5,icon:'\u{1F4F5}',name:'No Calls',color:'#3fb950',desc:'Messages & email, no calls'},
+  {t:6,icon:'\u2705',name:'Full Access',color:'#3fb950',desc:'All channels'},
+];
+
+const PERSONALITIES = [
+  {id:'classic_butler',icon:'\uD83C\uDFA9',name:'British Butler',desc:'"Indeed, sir." Impeccably proper, dry wit.'},
+  {id:'snarky_ai',icon:'\uD83D\uDC68\u200D\uD83C\uDF73',name:'Head Chef',desc:'Direct, passionate, no fluff. Gordon Ramsay energy.'},
+  {id:'warm_friend',icon:'\uD83E\uDD17',name:'Warm Friend',desc:'Caring, casual, encouraging.'},
+  {id:'coach',icon:'\uD83C\uDDEE\uD83C\uDDF1',name:'Sabra',desc:'"Yalla, let\'s go." Israeli directness + genuine warmth.'},
+  {id:'storyteller',icon:'\uD83D\uDCD6',name:'Storyteller',desc:'Creative, narrative, magical.'},
+];
+
+const AGENT_TYPES = [
+  {id:'morning',icon:'\u{1F305}',name:'Morning Brief',desc:'Daily briefing \u2014 calendar, weather, email',power:1,cat:'intelligence',color:'#58a6ff'},
+  {id:'email',icon:'\u{1F4E7}',name:'Email Watch',desc:'Monitor inbox for what matters',power:1,cat:'intelligence',color:'#58a6ff'},
+  {id:'research',icon:'\u{1F50D}',name:'Research',desc:'Daily AI, news & intelligence briefs',power:2,cat:'intelligence',color:'#58a6ff'},
+  {id:'evening',icon:'\u{1F319}',name:'Evening Wrap',desc:'End-of-day summary & tomorrow prep',power:1,cat:'intelligence',color:'#58a6ff'},
+  {id:'fitness',icon:'\u{1F4AA}',name:'Fitness',desc:'Workouts, strength & activity tracking',power:2,cat:'health',color:'#3fb950'},
+  {id:'nutrition',icon:'\u{1F957}',name:'Nutrition',desc:'Protein, vitamins, meal & hydration reminders',power:1,cat:'health',color:'#3fb950'},
+  {id:'sleep',icon:'\u{1F4A4}',name:'Sleep',desc:'Bedtime routine, wind-down & sleep quality',power:1,cat:'health',color:'#3fb950'},
+  {id:'wellness',icon:'\u{1F9D8}',name:'Wellness',desc:'Mood check-ins, stress & mental health',power:2,cat:'health',color:'#3fb950'},
+  {id:'family',icon:'\u{1F468}\u200D\u{1F469}\u200D\u{1F467}',name:'Family',desc:'Check-ins, messages & family coordination',power:2,cat:'communication',color:'#f778ba'},
+  {id:'reminders',icon:'\u{1F514}',name:'Reminders',desc:'Smart nudges & deadline alerts',power:1,cat:'communication',color:'#f778ba'},
+  {id:'social',icon:'\u{1F91D}',name:'Social',desc:'Birthdays, check-ins & relationship ops',power:2,cat:'communication',color:'#f778ba'},
+  {id:'security',icon:'\u{1F512}',name:'Security',desc:'Charges, fraud monitoring & account alerts',power:2,cat:'finance',color:'#f0883e'},
+  {id:'finance',icon:'\u{1F4B0}',name:'Finance',desc:'Spending summaries & budget tracking',power:2,cat:'finance',color:'#f0883e'},
+  {id:'calendar',icon:'\u{1F4C5}',name:'Calendar',desc:'Conflict detection & event reminders',power:1,cat:'scheduling',color:'#a371f7'},
+  {id:'meetings',icon:'\u{1F4CB}',name:'Meetings',desc:'Meeting prep, agendas & follow-ups',power:2,cat:'scheduling',color:'#a371f7'},
+  {id:'homelab',icon:'\u{1F5A5}\uFE0F',name:'Homelab',desc:'Server monitoring & container automation',power:3,cat:'home',color:'#39d353'},
+  {id:'smarthome',icon:'\u{1F3E0}',name:'Smart Home',desc:'Lights, thermostat & device automation',power:3,cat:'home',color:'#39d353'},
+  {id:'household',icon:'\u{1F9F9}',name:'Household',desc:'Chores, grocery & home task management',power:1,cat:'home',color:'#39d353'},
+  {id:'work',icon:'\u{1F4BC}',name:'Work',desc:'Standup prep, task tracking & team updates',power:2,cat:'work',color:'#e3b341'},
+  {id:'custom',icon:'\u26A1',name:'Custom',desc:'Build your own automation from scratch',power:1,cat:'custom',color:'#6e7681'},
+];
+
+const AGENT_CATEGORIES = [
+  {id:'intelligence',name:'Intelligence',icon:'\u{1F9E0}',color:'#58a6ff',desc:'Briefings, email, research'},
+  {id:'health',name:'Health',icon:'\u{1F49A}',color:'#3fb950',desc:'Fitness, nutrition, sleep'},
+  {id:'communication',name:'Communication',icon:'\u{1F4AC}',color:'#f778ba',desc:'Family, reminders, social'},
+  {id:'finance',name:'Finance',icon:'\u{1F4B3}',color:'#f0883e',desc:'Security, budgets'},
+  {id:'scheduling',name:'Scheduling',icon:'\u23F0',color:'#a371f7',desc:'Calendar, meetings'},
+  {id:'home',name:'Home',icon:'\u{1F3E1}',color:'#39d353',desc:'Homelab, smart home, chores'},
+  {id:'work',name:'Work',icon:'\u{1F4BC}',color:'#e3b341',desc:'Standup, tasks, team'},
+  {id:'custom',name:'Custom',icon:'\u26A1',color:'#6e7681',desc:'Build your own'},
+];
+
+const INSP_CATEGORIES = [
+  {id:'all',name:'All Ideas',icon:'⭐'},
+  {id:'routine',name:'Daily Routine',icon:'☀️'},
+  {id:'kids',name:'Kids & School',icon:'🎒'},
+  {id:'health',name:'Health',icon:'💪'},
+  {id:'finance',name:'Finance',icon:'💰'},
+  {id:'social',name:'Relationships',icon:'💝'},
+  {id:'fun',name:'Fun & Entertainment',icon:'🎮'},
+  {id:'news',name:'News & Info',icon:'📰'},
+  {id:'admin',name:'Life Admin',icon:'📋'},
+  {id:'custom',name:'Build Your Own',icon:'✨'},
+];
+
+const AGENT_INSPIRATION = [
+  // Daily Routine
+  {id:'i_morning_brief',cat:'routine',typeId:'morning_brief',icon:'☀️',color:'#fabc45',name:'Morning Briefing',tagline:'Start every day fully informed',prompt:'Every morning, send {name} a personalized briefing: today\'s weather, calendar events, top 3 news headlines, and one motivational thought. Keep it warm and concise.',schedule:'0 7 * * *'},
+  {id:'i_affirmation',cat:'routine',typeId:'custom',icon:'🌅',color:'#fabc45',name:'Morning Affirmation',tagline:'A daily dose of positivity',prompt:'Each morning, send {name} a personalized affirmation or motivational quote tailored to what they\'re currently working on in life. Keep it genuine, not cheesy.',schedule:'0 7 * * *'},
+  {id:'i_bedtime',cat:'routine',typeId:'custom',icon:'🌙',color:'#6e7681',name:'Bedtime Reminder',tagline:'Protect the sleep schedule',prompt:'At 10pm, send {name} a gentle reminder that it\'s bedtime. Include a relaxing thought for the night and a reminder to put the phone down.',schedule:'0 22 * * *'},
+  {id:'i_hydration',cat:'routine',typeId:'custom',icon:'💧',color:'#58a6ff',name:'Hydration Check',tagline:'Did you drink enough water today?',prompt:'Three times a day (morning, afternoon, evening), send {name} a friendly nudge to drink water. Keep the messages varied and fun.',schedule:'0 9,13,18 * * *'},
+  {id:'i_weather',cat:'routine',typeId:'weather',icon:'🌤️',color:'#a2c9ff',name:'Daily Weather Brief',tagline:'Always dressed for the day',prompt:'Each morning, send {name} a brief weather forecast for the day. Include recommendations (jacket? umbrella?) and any severe weather alerts for the area.',schedule:'0 7 * * *'},
+  {id:'i_evening_recap',cat:'routine',typeId:'custom',icon:'🌆',color:'#fabc45',name:'Evening Recap',tagline:'How did the day go?',prompt:'Each evening, send {name} a brief end-of-day check-in. Ask about one win, one challenge, and what\'s on the agenda for tomorrow. Help them close the day with intention.',schedule:'0 20 * * *'},
+  // Kids & School
+  {id:'i_homework',cat:'kids',typeId:'school_pickup',icon:'📚',color:'#67df70',name:'Homework Check-in',tagline:'Stay on top of schoolwork',prompt:'On weekday evenings at 4pm, message {name} asking how their homework is going. If they have a big test coming up, offer to quiz them.',schedule:'0 16 * * 1-5'},
+  {id:'i_school_debrief',cat:'kids',typeId:'custom',icon:'🎒',color:'#67df70',name:'School Day Debrief',tagline:'What happened at school today?',prompt:'Every weekday at 3:30pm, send {name} a friendly message asking about their day. Ask about one class, one friend, and one thing that made them smile.',schedule:'30 15 * * 1-5'},
+  {id:'i_reading_log',cat:'kids',typeId:'custom',icon:'📖',color:'#67df70',name:'Reading Log',tagline:'Build the reading habit',prompt:'Each evening at 7pm, ask {name} if they did their reading today. Ask what they\'re reading and what happened in the story. Celebrate streaks.',schedule:'0 19 * * *'},
+  {id:'i_vocab_word',cat:'kids',typeId:'custom',icon:'🔤',color:'#a371f7',name:'Word of the Day',tagline:'One new word every morning',prompt:'Each morning, send {name} an interesting new vocabulary word with its definition, origin, and an example sentence. Encourage them to use it during the day.',schedule:'0 8 * * *'},
+  {id:'i_math_puzzle',cat:'kids',typeId:'custom',icon:'🧮',color:'#a371f7',name:'Math Puzzle',tagline:'Keep the mind sharp',prompt:'Every weekday morning, send {name} a fun math puzzle or brain teaser appropriate for their age. Follow up with the answer in the evening.',schedule:'0 8 * * 1-5'},
+  {id:'i_chore_check',cat:'kids',typeId:'custom',icon:'🧹',color:'#67df70',name:'Chore Reminder',tagline:'Keep the household running',prompt:'On Saturday morning, remind {name} of their weekly chores. Send a checklist and ask them to confirm when done. Celebrate completion.',schedule:'0 10 * * 6'},
+  {id:'i_bedtime_story',cat:'kids',typeId:'custom',icon:'🧸',color:'#f778ba',name:'Bedtime Story Idea',tagline:'A different story every night',prompt:'Each evening at 8pm, send {name} a creative bedtime story starter — a fun opening line and setting for a bedtime story. Make it magical and age-appropriate.',schedule:'0 20 * * *'},
+  // Health
+  {id:'i_medication',cat:'health',typeId:'medication',icon:'💊',color:'#3fb950',name:'Medication Reminder',tagline:'Never miss a dose',prompt:'Remind {name} to take their medication every day at the scheduled time. Check in an hour later to confirm. Track streaks and flag if they miss.',schedule:'0 8 * * *'},
+  {id:'i_workout',cat:'health',typeId:'workout',icon:'🏃',color:'#3fb950',name:'Workout Encouragement',tagline:'Get moving, every day',prompt:'On workout days, send {name} motivating messages before and after their workout. Celebrate PRs and consistency. On rest days, remind them that recovery matters.',schedule:'0 7 * * 1,3,5'},
+  {id:'i_step_check',cat:'health',typeId:'custom',icon:'👟',color:'#3fb950',name:'Steps Check-in',tagline:'Hit that step goal',prompt:'At 6pm each day, check in with {name} about their step count. If they haven\'t hit 8,000 steps yet, suggest a quick evening walk. Celebrate milestones.',schedule:'0 18 * * *'},
+  {id:'i_mood_check',cat:'health',typeId:'custom',icon:'🧠',color:'#58a6ff',name:'Mental Health Check-in',tagline:'How are you really doing?',prompt:'Every few days, send {name} a thoughtful check-in about how they\'re feeling. Ask one open question about their wellbeing. Keep it warm and non-invasive.',schedule:'0 20 * * 0,3,5'},
+  {id:'i_meal_check',cat:'health',typeId:'custom',icon:'🥗',color:'#67df70',name:'Nutrition Check',tagline:'Eating well matters',prompt:'At lunchtime, send {name} a reminder to eat a proper meal. Occasionally suggest a healthy recipe or ask what they ate. Celebrate good choices.',schedule:'0 12 * * *'},
+  {id:'i_sleep_quality',cat:'health',typeId:'custom',icon:'😴',color:'#6e7681',name:'Sleep Quality Tracker',tagline:'Wake up rested',prompt:'Each morning, ask {name} how they slept last night. Track patterns and provide tips if they\'re consistently sleeping poorly. Celebrate good sleep streaks.',schedule:'0 8 * * *'},
+  // Finance
+  {id:'i_spending',cat:'finance',typeId:'spending_summary',icon:'💳',color:'#f0883e',name:'Weekly Spending Summary',tagline:'Know where the money goes',prompt:'Every Sunday evening, send {name} a brief summary of the week\'s spending patterns. Highlight unusual expenses and compare to the weekly budget target.',schedule:'0 19 * * 0'},
+  {id:'i_bill_reminder',cat:'finance',typeId:'custom',icon:'🧾',color:'#f0883e',name:'Bill Reminder',tagline:'Never miss a payment',prompt:'Remind {name} of upcoming bills 5 days before they\'re due. Include the amount and whether autopay is set up. Flag anything that needs manual payment.',schedule:'0 9 1 * *'},
+  {id:'i_savings_goal',cat:'finance',typeId:'custom',icon:'🎯',color:'#f0883e',name:'Savings Goal Tracker',tagline:'Watch the goal get closer',prompt:'On the 1st of each month, send {name} a progress update on their savings goals. Celebrate milestones and recalculate how long until they hit the target.',schedule:'0 9 1 * *'},
+  {id:'i_subscriptions',cat:'finance',typeId:'custom',icon:'📡',color:'#f0883e',name:'Subscription Audit',tagline:'Stop paying for what you don\'t use',prompt:'Once a month, remind {name} to review their subscriptions. Ask which ones they used last month and which might be worth cancelling.',schedule:'0 10 1 * *'},
+  {id:'i_market',cat:'finance',typeId:'custom',icon:'📈',color:'#f0883e',name:'Market Snapshot',tagline:'Quick financial pulse',prompt:'Every weekday afternoon, send {name} a brief market summary: major index movements, any big news affecting their portfolio, and one interesting story.',schedule:'0 16 * * 1-5'},
+  // Relationships
+  {id:'i_birthday',cat:'social',typeId:'birthday_reminder',icon:'🎂',color:'#f778ba',name:'Birthday Reminders',tagline:'Never forget the people who matter',prompt:'Three days before any birthday in the family circle, remind {name} to get a gift or plan something. On the day itself, send a reminder to call or message.',schedule:'0 9 * * *'},
+  {id:'i_anniversary',cat:'social',typeId:'custom',icon:'💍',color:'#f778ba',name:'Anniversary Alert',tagline:'Keep the romance alive',prompt:'Two weeks before the anniversary, remind {name} to plan something special. Week before: suggest ideas. Day before: gentle reminder. Day of: warm message.',schedule:'0 9 * * *'},
+  {id:'i_friend_checkin',cat:'social',typeId:'custom',icon:'👥',color:'#f778ba',name:'Friend Check-in',tagline:'Stay connected with people you love',prompt:'Once a week, remind {name} to reach out to a friend they haven\'t talked to recently. Suggest conversation starters or encourage a quick "thinking of you" message.',schedule:'0 12 * * 3'},
+  {id:'i_family_newsletter',cat:'social',typeId:'custom',icon:'📰',color:'#f778ba',name:'Family Newsletter',tagline:'Keep the whole family in the loop',prompt:'Every Sunday, compile a brief family newsletter with the week\'s highlights, upcoming events, and a fun question for the family to discuss together.',schedule:'0 17 * * 0'},
+  {id:'i_gratitude',cat:'social',typeId:'custom',icon:'🙏',color:'#f778ba',name:'Gratitude Moment',tagline:'Count your blessings',prompt:'Three evenings a week, send {name} a prompt to reflect on one thing they\'re grateful for today. Build the gratitude habit gently over time.',schedule:'0 21 * * 0,2,4'},
+  {id:'i_love_note',cat:'social',typeId:'custom',icon:'💌',color:'#f778ba',name:'Surprise Love Note',tagline:'An unexpected moment of warmth',prompt:'Once a week at a random time, send {name} a spontaneous, heartfelt message. Reference something specific about them. Make it feel personal, not automated.',schedule:'0 14 * * 2'},
+  // Fun & Entertainment
+  {id:'i_movie_rec',cat:'fun',typeId:'custom',icon:'🎬',color:'#a371f7',name:'Movie Night Pick',tagline:'End the endless scrolling',prompt:'Every Friday evening, suggest a movie or show for {name} to watch this weekend. Consider their mood, what\'s new, and what they haven\'t seen yet. Include a brief pitch.',schedule:'0 17 * * 5'},
+  {id:'i_book_rec',cat:'fun',typeId:'custom',icon:'📚',color:'#a371f7',name:'Book Club Pick',tagline:'Your next great read',prompt:'Once a month, recommend a book for {name} based on their interests. Include why you think they\'ll love it, a brief non-spoiler summary, and where to find it.',schedule:'0 10 1 * *'},
+  {id:'i_music',cat:'fun',typeId:'custom',icon:'🎵',color:'#a371f7',name:'Playlist of the Day',tagline:'The perfect soundtrack for your mood',prompt:'Each morning, send {name} a mood-based playlist suggestion. Ask how they\'re feeling and match the vibe. Include one standout track to listen to first.',schedule:'0 8 * * *'},
+  {id:'i_trivia',cat:'fun',typeId:'custom',icon:'🎯',color:'#a371f7',name:'Daily Trivia',tagline:'Something fascinating every day',prompt:'Each day, send {name} a fascinating trivia fact. Mix topics: science, history, pop culture, nature. Make it conversation-worthy and surprising.',schedule:'0 9 * * *'},
+  {id:'i_game_night',cat:'fun',typeId:'custom',icon:'🎲',color:'#a371f7',name:'Game Night Organizer',tagline:'Bring the family together',prompt:'Every two weeks on Friday, organize a family game night. Suggest a game, ensure everyone knows, send countdown reminders, and follow up with a recap.',schedule:'0 16 * * 5'},
+  {id:'i_recipe',cat:'fun',typeId:'custom',icon:'🍳',color:'#a371f7',name:'Recipe of the Week',tagline:'Something new to cook',prompt:'Every Saturday morning, send {name} an interesting recipe to try this weekend. Include difficulty level, time required, and why it\'s worth making.',schedule:'0 9 * * 6'},
+  // News & Info
+  {id:'i_news_brief',cat:'news',typeId:'news_brief',icon:'📰',color:'#80cbc4',name:'Morning News Digest',tagline:'Stay informed, not overwhelmed',prompt:'Every morning, send {name} a curated digest of 5 important news stories. Focus on what actually matters, skip the noise. Include one local story.',schedule:'0 7 * * *'},
+  {id:'i_tech_news',cat:'news',typeId:'custom',icon:'💻',color:'#80cbc4',name:'Tech Pulse',tagline:'Latest in technology',prompt:'Every weekday morning, send {name} 3 interesting tech stories: one major headline, one startup story, and one useful tool or gadget worth knowing about.',schedule:'0 8 * * 1-5'},
+  {id:'i_sports',cat:'news',typeId:'custom',icon:'⚽',color:'#80cbc4',name:'Sports Update',tagline:'Never miss the big game',prompt:'After any game involving {name}\'s favorite teams, send a score update with highlights. For big games, send pre-game excitement and post-game analysis.',schedule:'0 22 * * *'},
+  {id:'i_local_events',cat:'news',typeId:'custom',icon:'🎪',color:'#80cbc4',name:'Weekend Events',tagline:'Make the most of every weekend',prompt:'Every Thursday evening, send {name} a curated list of interesting local events happening this weekend. Include a mix of family-friendly and adult options.',schedule:'0 19 * * 4'},
+  // Life Admin
+  {id:'i_car_maintenance',cat:'admin',typeId:'custom',icon:'🚗',color:'#e3b341',name:'Car Maintenance Tracker',tagline:'Keep the car happy',prompt:'Track {name}\'s car maintenance schedule. Send reminders for upcoming oil changes, tire rotations, registrations, and inspections. Include cost estimates.',schedule:'0 9 1 * *'},
+  {id:'i_home_tasks',cat:'admin',typeId:'custom',icon:'🏠',color:'#e3b341',name:'Home Task Scheduler',tagline:'A well-maintained home runs itself',prompt:'Send {name} seasonal home maintenance reminders: filter changes, gutter cleaning, garden prep, etc. Make sure nothing slips through the cracks.',schedule:'0 9 1 * *'},
+  {id:'i_grocery',cat:'admin',typeId:'custom',icon:'🛒',color:'#e3b341',name:'Grocery Reminder',tagline:'Never run out of the essentials',prompt:'Every Saturday morning, remind {name} to check the fridge and pantry for what needs restocking. Suggest a grocery list based on what they typically need.',schedule:'0 10 * * 6'},
+  {id:'i_documents',cat:'admin',typeId:'custom',icon:'📄',color:'#e3b341',name:'Document Expiry Alert',tagline:'Passport, license, insurance — covered',prompt:'Track expiry dates for important documents (passport, driver\'s license, insurance). Send alerts 90 days, 30 days, and 1 week before expiration.',schedule:'0 9 1 * *'},
+  {id:'i_trip_prep',cat:'admin',typeId:'custom',icon:'✈️',color:'#e3b341',name:'Trip Preparation',tagline:'Never forget your passport',prompt:'Starting one week before a trip, send {name} daily countdown messages with packing reminders, check-in deadlines, and day-of logistics. Make travel stress-free.',schedule:'0 18 * * *'},
+  // Custom
+  {id:'i_custom',cat:'custom',typeId:'custom',icon:'✨',color:'#a2c9ff',name:'Build from Scratch',tagline:'Describe anything — Jarvis will do it',prompt:'',schedule:''},
+];
+
+const SCHEDULES = [
+  {label:'6:30 AM daily',cron:'30 6 * * *',cat:'morning'},
+  {label:'7:00 AM daily',cron:'0 7 * * *',cat:'morning'},
+  {label:'7:30 AM weekdays',cron:'30 7 * * 1-5',cat:'morning'},
+  {label:'7:45 AM daily',cron:'45 7 * * *',cat:'morning'},
+  {label:'8:45 AM weekdays',cron:'45 8 * * 1-5',cat:'work'},
+  {label:'9 AM / 1 PM / 6 PM',cron:'0 9,13,18 * * *',cat:'email'},
+  {label:'9:30 AM / 1:30 PM / 6:30 PM',cron:'30 9,13,18 * * *',cat:'email'},
+  {label:'30 min before 5 PM meeting',cron:'30 16 * * 1-5',cat:'meetings'},
+  {label:'Mon/Wed/Thu 3:30 PM',cron:'30 15 * * 1,3,4',cat:'fitness'},
+  {label:'Mon/Wed/Thu 5:30 PM',cron:'30 17 * * 1,3,4',cat:'nutrition'},
+  {label:'5:30 PM weekdays',cron:'30 17 * * 1-5',cat:'work'},
+  {label:'8:00 PM daily',cron:'0 20 * * *',cat:'evening'},
+  {label:'9:00 PM daily',cron:'0 21 * * *',cat:'sleep'},
+  {label:'10:00 PM daily',cron:'0 22 * * *',cat:'sleep'},
+  {label:'Every hour',cron:'10 * * * *',cat:'security'},
+  {label:'Every 2 hours',cron:'0 */2 * * *',cat:'security'},
+  {label:'Every 30 minutes',cron:'*/30 * * * *',cat:'security'},
+  {label:'Sunday 6 PM',cron:'0 18 * * 0',cat:'work'},
+  {label:'Sunday 8 AM',cron:'0 8 * * 0',cat:'morning'},
+  {label:'Monday 9 AM',cron:'0 9 * * 1',cat:'work'},
+];
+
+const CAPABILITIES = [
+  {icon:'\u{1F4AC}',name:'WhatsApp Messages',desc:'Send messages to anyone in your family',power:1},
+  {icon:'\u{1F4DE}',name:'Voice Calls',desc:'Call family members via ElevenLabs voice',power:3},
+  {icon:'\u{1F4E7}',name:'Read Email',desc:'Scan and summarize Gmail inboxes',power:1},
+  {icon:'\u{1F4E8}',name:'Send Email',desc:'Reply and compose emails on your behalf',power:2},
+  {icon:'\u{1F4C5}',name:'Calendar',desc:'Check iCloud/Google Calendar',power:1},
+  {icon:'\u{1F9E0}',name:'Memory',desc:'Remembers your family, tasks, preferences',power:1},
+  {icon:'\u23F0',name:'Automations',desc:'Run on any schedule',power:1},
+  {icon:'\u{1F50D}',name:'Web Research',desc:'Search the web and summarize news',power:2},
+  {icon:'\u{1F3B5}',name:'Spotify',desc:'Control music playback',power:2},
+  {icon:'\u2708\uFE0F',name:'Telegram',desc:'Full two-way Telegram bot interface',power:1},
+  {icon:'\u{1F3E0}',name:'Home Assistant',desc:'Control lights, thermostat, devices',power:3},
+  {icon:'\u{1F5A5}\uFE0F',name:'Homelab',desc:'Monitor and control homelab services',power:3},
+];
+
+const TEMPLATES = {
+  'morning:rotem': "Check Rotem's Gmail for important emails in the last 12 hours. Then pull today's calendar events from iCloud. Compose a sharp morning briefing. Send as a WhatsApp message to Rotem.",
+  'morning:miko': "Check Miko's Gmail for anything important in the last 12 hours. Pull Miko's calendar for today. Send a warm morning summary to Miko via WhatsApp in Hebrew.",
+  'sleep:itay': "Compose a short bedtime story for Itay (Mr. Gandalf) \u2014 adventurous, heroic, 3-4 paragraphs. Send via WhatsApp.",
+  'sleep:miko': "Write a romantic, warm goodnight message for Miko in Hebrew. Send via WhatsApp.",
+  'fitness:rotem': "Send Rotem a workout preparation reminder. Energetic tone. Include the date.",
+  'security:rotem': "Check Rotem's email for any alerts about charges, suspicious transactions, account security. If anything concerning, send an alert via Telegram. If nothing, stay silent.",
+  'evening:rotem': "Summarize Rotem's day. Send via Telegram. Keep it tight.",
+  'nutrition:rotem': "Send Rotem a protein shake reminder via Telegram.",
+  'research:rotem': "Search for the top 3-5 AI and tech news stories from the last 24 hours. Send to Rotem via Telegram.",
+  'reminders:rotem': "Check Rotem's calendar for upcoming events needing prep. Send a Telegram reminder.",
+  'work:rotem': "Draft a standup for Rotem. Send via Telegram.",
+};
+
+const TEMPLATE_ANY = {
+  'email': "Check {name}'s Gmail for important emails received in the last 4 hours. Send summary via {channel}.",
+  'research': "Search for the top 3-5 AI and tech news stories. Send to {name} via {channel}.",
+  'morning': "Check {name}'s Gmail and calendar for today. Send a concise morning brief via {channel}.",
+  'evening': "Summarize {name}'s day. Send an EOD wrap via {channel}.",
+  'reminders': "Check {name}'s calendar for events in the next 2 hours. Send a reminder via {channel}.",
+  'nutrition': "Send {name} a nutrition or hydration reminder via {channel}.",
+  'sleep': "Send {name} a gentle wind-down message via {channel}.",
+  'security': "Check {name}'s email for alerts about charges or suspicious activity. Alert via {channel} if needed.",
+  'work': "Draft a standup for {name}. Send via {channel}.",
+  'meetings': "Check {name}'s calendar for upcoming meetings. Send prep brief via {channel}.",
+};
+
+const DEFAULT_FAMILY = [
+  {id:'rotem',name:'Rotem',relation:'Self',emoji:'\u{1F464}',color:'#58a6ff',contact_tier:6,phone:'',whatsapp:'',email:'',telegram:'tg:1449522448',preferred_channel:'telegram',language:'en',quiet_hours:{start:'23:00',end:'07:00'},jarvis_personality:'classic_butler',notes:'Owner.'},
+  {id:'miko',name:'Miko',relation:'Spouse',emoji:'\u{1F49A}',color:'#f778ba',contact_tier:6,phone:'',whatsapp:'',email:'',telegram:'',preferred_channel:'whatsapp',language:'he',quiet_hours:{start:'22:00',end:'07:00'},jarvis_personality:'warm_friend',notes:''},
+  {id:'itay',name:'Itay',relation:'Son',emoji:'\u{1F9D9}',color:'#a371f7',contact_tier:6,phone:'',whatsapp:'',email:'',telegram:'',preferred_channel:'whatsapp',language:'he',quiet_hours:{start:'21:00',end:'08:00'},jarvis_personality:'storyteller',notes:'Nickname: Mr. Gandalf.'},
+  {id:'danielle',name:'Danielle',relation:'Daughter',emoji:'\u2728',color:'#f0883e',contact_tier:6,phone:'',whatsapp:'',email:'',telegram:'',preferred_channel:'whatsapp',language:'he',quiet_hours:{start:'22:00',end:'08:00'},jarvis_personality:'warm_friend',notes:''},
+  {id:'noya',name:'Noya',relation:'Daughter',emoji:'\u{1F6AB}',color:'#8b949e',contact_tier:0,phone:'',whatsapp:'',email:'',telegram:'',preferred_channel:'none',language:'he',quiet_hours:{start:'00:00',end:'00:00'},jarvis_personality:'warm_friend',notes:'Blocked.'},
+];
+
+const DEFAULT_TENANT = {tenant_id:'benisrael',owner:'Rotem',jarvis_name:'Jarvis',moneypenny_power:3,timezone:'America/Los_Angeles',language:'en',weather_location:'Pleasanton, CA'};
+
+const COVERAGE_BY_RELATION = {
+  'Self':['morning','email','calendar','fitness','research','security'],
+  'self':['morning','email','calendar','fitness','research','security'],
+  'Spouse':['morning','email','sleep','reminders'],
+  'spouse':['morning','email','sleep','reminders'],
+  'Son':['sleep','family','reminders'],
+  'son':['sleep','family','reminders'],
+  'Daughter':['sleep','family','reminders'],
+  'daughter':['sleep','family','reminders'],
+  'Parent':['morning','reminders','social'],
+  'parent':['morning','reminders','social'],
+  'Friend':['reminders','social'],
+  'friend':['reminders','social'],
+  'Colleague':['meetings','reminders'],
+  'colleague':['meetings','reminders'],
+};
+
+const AP_EMOJIS = ['\uD83D\uDC64','\uD83D\uDC69','\uD83D\uDC68','\uD83D\uDC67','\uD83D\uDC66','\uD83E\uDDD2','\uD83D\uDC76','\uD83E\uDDD1','\uD83E\uDDD3','\uD83D\uDC74','\uD83D\uDC75','\uD83D\uDC9A','\uD83D\uDC99','\uD83D\uDC9B','\u2764\uFE0F','\uD83E\uDDD9','\u2728','\uD83C\uDF38','\uD83C\uDF1F','\uD83D\uDCAB','\u2B50','\uD83C\uDFAF','\uD83C\uDFC6','\uD83E\uDD81','\uD83D\uDC2F','\uD83E\uDD8A','\uD83D\uDC3A','\uD83E\uDD8B'];
+const AP_COLORS = ['#58a6ff','#f778ba','#a371f7','#f0883e','#3fb950','#d29922','#ff7b72','#79c0ff','#ffa7c4','#8b949e'];
+const AP_RELATIONS = ['Spouse/Partner','Son','Daughter','Parent','Sibling','Friend','Colleague','Other'];
+const AP_CHANNELS = [{id:'whatsapp',icon:'\uD83D\uDCAC',label:'WhatsApp'},{id:'telegram',icon:'\u2708\uFE0F',label:'Telegram'},{id:'email',icon:'\uD83D\uDCE7',label:'Email'},{id:'phone',icon:'\uD83D\uDCF1',label:'Phone'}];
+const AP_LANGS = [{id:'en',label:'\uD83C\uDDFA\uD83C\uDDF8 English'},{id:'he',label:'\uD83C\uDDEE\uD83C\uDDF1 Hebrew'},{id:'both',label:'Both'}];
+
+/* ================================================================
+   STATE
+================================================================ */
+let jobs=[], family=[...DEFAULT_FAMILY], tenant={...DEFAULT_TENANT};
+let activePerson = sessionStorage.getItem('jp_person') || null;
+let activeView = 'landing';
+let lastFetchTime = null;
+let editingJobId=null, addingForPerson=null, selectedAgentType=null;
+let pickedCron='', editingPersonId=null;
+let mpOnline=null;
+let jobHistory={};
+let recentRunOutputs={};
+let calCache={};
+let autoRefreshInterval=null;
+let searchDebounce=null;
+let currentUser=null;
+let apStep=1, apData={};
+let vacPersonId=null;
+let sysLogFilter='all', sysLogPerson='all', sysLogSearch='', sysLogDateFilter='all', sysLogPage=0;
+let categoryStates = {};
+
+/* ================================================================
+   DETECTION & HELPERS (copied from v1)
+================================================================ */
+function personOf(j){
+  const n=(j.name||'').toLowerCase(),p=(j.prompt||'').toLowerCase();
+  if(/^system:|backup|heartbeat|workspace/.test(n)) return 'system';
+  if(/miko/i.test(n)||/miko/i.test(p)) return 'miko';
+  if(/itay/i.test(n)||/itay/i.test(p)||/gandalf/i.test(p)) return 'itay';
+  if(/danielle/i.test(n)||/danielle/i.test(p)) return 'danielle';
+  if(/noya/i.test(n)||/noya/i.test(p)) return 'noya';
+  return 'rotem';
+}
+function channelOf(j){
+  const p=(j.prompt||'').toLowerCase();
+  if(/"action"\s*:\s*"call"|action.*call|moneypenny.*call/.test(p)) return {icon:'\uD83D\uDCDE',label:'Voice call'};
+  if(/telegram/.test(p)) return {icon:'\u2708\uFE0F',label:'Telegram'};
+  return {icon:'\uD83D\uDCAC',label:'WhatsApp'};
+}
+function agentOf(j){
+  const n=(j.name||'').toLowerCase();
+  const pt=(j.prompt||'').split('\n')[0].toLowerCase();
+  const s=n||pt;
+  if(/morning.chaos|executive.brief|voice.brief|daily.summary|miko.daily|morning.brief/.test(s)) return 'morning';
+  if(/evening.wrap|eod|end.of.day|daily.wrap|day.*summary/.test(s)) return 'evening';
+  if(/email|gmail|inbox/.test(s)) return 'email';
+  if(/research|x.*brief|ai.*brief|intelligence.*brief|news.*brief|tech.*brief/.test(s)) return 'research';
+  if(/calendar.*conflict|conflict.*detect|check.*calendar/.test(s)) return 'calendar';
+  if(/meeting.*prep|standup.*prep|1.?on.?1|prep.*meeting|agenda/.test(s)) return 'meetings';
+  if(/bedtime|goodnight|wind.?down/.test(s)) return 'sleep';
+  if(/sleep/.test(s)&&!/homelab/.test(s)) return 'sleep';
+  if(/strength|workout|gym|exercise/.test(s)) return 'fitness';
+  if(/protein|shake|vitamin|meal|nutrition|hydrat/.test(s)) return 'nutrition';
+  if(/wellness|mood|mental.health|stress|meditat/.test(s)) return 'wellness';
+  if(/reminder|nudge|dont.forget/.test(s)) return 'reminders';
+  if(/charges|security|fraud|transaction/.test(s)) return 'security';
+  if(/finance|budget|spending|expense/.test(s)) return 'finance';
+  if(/birthday|check.in|social|relationship/.test(s)) return 'social';
+  if(/^family:/.test(n)||(/family.*message|family.*check/.test(s)&&!/sleep|fitness|nutrition/.test(s))) return 'family';
+  if(/home.assistant|smart.home|thermostat|hass/.test(s)) return 'smarthome';
+  if(/chore|grocery|household|cleaning|shopping.list/.test(s)) return 'household';
+  if(/homelab|docker|container|server.*monitor|backup|workspace/.test(s)) return 'homelab';
+  if(/standup|sprint|jira|linear|ticket|work/.test(s)) return 'work';
+  return 'custom';
+}
+function labelOf(name){
+  if(!name) return 'Unnamed';
+  return name.replace(/^[a-z0-9-]+:/i,'').replace(/-(\d{4})$/,'').replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase()).trim()||name;
+}
+function isOn(j){
+  if(j.enabled===undefined||j.enabled===null) return j.status!=='disabled'&&j.status!=='paused';
+  return j.enabled!==0&&j.enabled!==false&&j.enabled!=='0';
+}
+function isVacation(p){ return p.vacation_until && new Date(p.vacation_until) > new Date(); }
+
+function computeHealth(p, pJobs) {
+  const issues = [];
+  if (!p || p.contact_tier === 0) return {color:'green',issues};
+  const hasPhone = !!p.phone, hasWa = !!p.whatsapp, hasEmail = !!p.email, hasTg = !!p.telegram;
+  const allEmpty = !hasPhone && !hasWa && !hasEmail && !hasTg;
+  if (p.contact_tier > 0 && allEmpty) {
+    issues.push({level:'error',msg:'No contact info set \u2014 all automations will fail'});
+    return {color:'red',issues};
+  }
+  const waJobs = pJobs.filter(j => /whatsapp/i.test(j.prompt||''));
+  const emailJobs = pJobs.filter(j => /email|gmail/i.test(j.prompt||''));
+  const tgJobs = pJobs.filter(j => /telegram/i.test(j.prompt||''));
+  if (waJobs.length && !hasWa) issues.push({level:'warn',msg:`WhatsApp not set \u2014 ${waJobs.length} automation${waJobs.length>1?'s':''} may fail`});
+  if (emailJobs.length && !hasEmail) issues.push({level:'warn',msg:`Email not set \u2014 ${emailJobs.length} automation${emailJobs.length>1?'s':''} may fail`});
+  if (tgJobs.length && !hasTg) issues.push({level:'warn',msg:`Telegram not set \u2014 ${tgJobs.length} automation${tgJobs.length>1?'s':''} may fail`});
+  const failedJobs = pJobs.filter(j => j.status === 'failed');
+  if (failedJobs.length) issues.push({level:'warn',msg:`${failedJobs.length} job${failedJobs.length>1?'s':''} failed`});
+  return {color: issues.some(i=>i.level==='error') ? 'red' : issues.length ? 'yellow' : 'green', issues};
+}
+function healthDotColor(p) {
+  const pJobs = jobs.filter(j => personOf(j) === p.id);
+  return computeHealth(p, pJobs).color;
+}
+
+function cronDesc(expr){
+  if(!expr) return '';
+  const p=expr.trim().split(/\s+/);
+  if(p.length!==5) return expr;
+  const[min,hour,,,dow]=p;
+  const ft=(h,m)=>{const hh=+h,mm=+m||0,ap=hh>=12?'PM':'AM',h12=hh%12||12;return`${h12}:${String(mm).padStart(2,'0')} ${ap}`;};
+  if(hour==='*') return `Every hour at :${String(+min).padStart(2,'0')}`;
+  if(hour.startsWith('*/')) return `Every ${hour.slice(2)} hours`;
+  if(hour.includes(',')) return `Daily at ${hour.split(',').map(h=>ft(h,min)).join(', ')}`;
+  const dm={0:'Sunday',1:'Mon',2:'Tue',3:'Wed',4:'Thu',5:'Fri',6:'Sat'};
+  const dl=dow==='*'?'Daily':dow==='1-5'?'Weekdays':dow==='0'?'Sundays':dow.split(',').map(d=>dm[+d]||d).join('/');
+  return`${dl} at ${ft(hour,min)}`;
+}
+function relTime(iso){
+  if(!iso) return '\u2014';
+  const d=new Date(iso)-Date.now(),a=Math.abs(d),past=d<0;
+  if(a<60000) return past?'just now':'starting now';
+  if(a<3600000){const m=Math.round(a/60000);return past?`${m}m ago`:`in ${m}m`;}
+  if(a<86400000){const h=Math.round(a/3600000);return past?`${h}h ago`:`in ${h}h`;}
+  return past?`${Math.round(a/86400000)}d ago`:`in ${Math.round(a/86400000)}d`;
+}
+function fmt12(t){const[h,m]=(t||'22:00').split(':').map(Number);const ap=h>=12?'PM':'AM',h12=h%12||12;return`${h12}:${String(m).padStart(2,'0')} ${ap}`;}
+function cronFireTimes(expr, isWeekend) {
+  if (!expr) return [];
+  const p = expr.trim().split(/\s+/);
+  if (p.length !== 5) return [];
+  const [min, hour,,, dow] = p;
+  if (dow !== '*') {
+    const days = dow.includes('-') ? expandRange(dow) : dow.split(',').map(Number);
+    const isWkend = d => d === 0 || d === 6;
+    if (isWeekend && !days.some(isWkend)) return [];
+    if (!isWeekend && !days.some(d => !isWkend(d))) return [];
+  }
+  const hours = hour === '*' ? Array.from({length:24},(_,i)=>i) : hour.startsWith('*/') ? Array.from({length:Math.ceil(24/+hour.slice(2))},(_,i)=>i*(+hour.slice(2))) : hour.split(',').map(Number);
+  const mins = min === '*' ? [0] : min.startsWith('*/') ? [0] : min.split(',').map(Number);
+  const times = [];
+  for (const h of hours) for (const m of mins) times.push(h * 60 + m);
+  return times;
+}
+function expandRange(s) {
+  const [a,b] = s.split('-').map(Number);
+  const r = [];
+  for (let i = a; i <= b; i++) r.push(i);
+  return r;
+}
+
+// People with their own CalDAV accounts — show only their events, no fallback
+const CALDAV_ACCOUNTS = ['rotem','miko'];
+function formatCalStrip(text, personName) {
+  if (!text || typeof text !== 'string') return '<span class="text-on-surface-variant text-xs">No events today</span>';
+  let lines = text.split('\n').filter(l=>l.trim()&&l.length>3&&!l.startsWith('{'));
+  if (personName) {
+    const owned = lines.filter(l => new RegExp(`\\[${personName}/`, 'i').test(l));
+    const hasOwnAccount = CALDAV_ACCOUNTS.includes(personName.toLowerCase());
+    if (owned.length) {
+      lines = owned;
+    } else if (hasOwnAccount) {
+      // Person has a CalDAV account but no events today — show empty, not Miko's events
+      return '<span class="text-on-surface-variant text-xs">No events today</span>';
+    }
+    // else: no account (kids) — fall through and show shared family events
+  }
+  if (!lines.length) return '<span class="text-on-surface-variant text-xs">No events today</span>';
+  return lines.slice(0,4).map(line => {
+    const m = line.match(/(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})/);
+    const timeStr = m ? `${parseInt(m[4])}:${m[5].padStart(2,'0')}` : '';
+    const summary = line.replace(/^\S+\s+\[[^\]]+\]\s*/, '').trim();
+    const short = summary.length > 30 ? summary.slice(0,28)+'\u2026' : summary;
+    return `<div class="bg-surface-container-high px-3 py-1.5 rounded-lg flex items-center gap-2 whitespace-nowrap">
+      <span class="w-2 h-2 rounded-full bg-primary flex-shrink-0"></span>
+      <span class="text-xs font-medium">${timeStr ? timeStr+' ' : ''}${short}</span>
+    </div>`;
+  }).join('');
+}
+
+/* ================================================================
+   API
+================================================================ */
+async function apiFetch(method, path, body) {
+  const r = await fetch(`${API}${path}`, {method, headers:{'Content-Type':'application/json'}, body: body ? JSON.stringify(body) : undefined});
+  if (!r.ok) throw new Error(`${method} ${path} \u2192 ${r.status}`);
+  return r.json().catch(()=>({}));
+}
+
+async function fetchAll() {
+  try {
+    const [jobsRes, familyRes, tenantRes, runsRes] = await Promise.all([
+      fetch(`${API}/jobs`).then(r=>r.json()),
+      fetch(`${API}/family`).then(r=>r.json()),
+      fetch(`${API}/tenant`).then(r=>r.json()),
+      fetch(`${API}/jobs/runs?limit=200`).then(r=>r.json()),
+    ]);
+    jobs = Array.isArray(jobsRes) ? jobsRes : [];
+    family = (familyRes.people || familyRes || DEFAULT_FAMILY);
+    if (familyRes.people) family = familyRes.people;
+    tenant = tenantRes || DEFAULT_TENANT;
+
+    if (Array.isArray(runsRes)) {
+      recentRunOutputs = {};
+      runsRes.forEach(r => {
+        if (!recentRunOutputs[r.job_id] || new Date(r.run_at) > new Date(recentRunOutputs[r.job_id].ts)) {
+          recentRunOutputs[r.job_id] = { ts: r.run_at, output: (r.result||r.error||'').replace(/<internal>[\s\S]*?<\/internal>/gi,'').trim(), status: r.status, dur: r.duration_ms };
+        }
+      });
+    }
+
+    try {
+      const mpFam = await fetch(`${API}/moneypenny-family`).then(r=>r.json());
+      const mpPpl = Array.isArray(mpFam) ? mpFam : mpFam?.people || [];
+      if (mpPpl.length) {
+        family = family.map(p => {
+          const mp = mpPpl.find(m => m.id===p.id || m.name?.toLowerCase()===p.name?.toLowerCase());
+          if (!mp) return p;
+          return {...p, phone:p.phone||mp.phone||mp.number||'', whatsapp:p.whatsapp||mp.whatsapp||mp.number||'', email:p.email||mp.email||'', telegram:p.telegram||mp.telegram||''};
+        });
+      }
+    } catch {}
+
+    try {
+      const hr = await fetch(`${API}/jobs/history?days=7`).then(r=>r.json());
+      if (hr && !hr.error) jobHistory = hr;
+    } catch {}
+
+    lastFetchTime = new Date();
+  } catch(e) { console.error('fetchAll failed', e); }
+}
+
+async function fetchPersonCalendar(pid) {
+  const now = Date.now();
+  if (calCache[pid] && now - calCache[pid].ts < 5*60*1000) return;
+  const p = family.find(f=>f.id===pid);
+  if (!p) return;
+  try {
+    const r = await apiFetch('POST','/proxy/check_calendar',{account:p.name||pid,query:'today'});
+    const text = typeof r === 'string' ? r : (r?.result||r?.message||JSON.stringify(r));
+    calCache[pid] = { ts: now, events: text };
+  } catch {
+    calCache[pid] = { ts: now, events: null };
+  }
+  if (activePerson === pid) renderCurrentView();
+}
+
+async function checkMp() {
+  try {
+    const c = new AbortController();
+    setTimeout(()=>c.abort(), 4000);
+    const r = await fetch(`${API}/health/moneypenny`, {signal:c.signal});
+    const d = await r.json();
+    mpOnline = d.online;
+  } catch { mpOnline = false; }
+  renderMpBadge();
+}
+
+function renderMpBadge() {
+  const dot = document.getElementById('mp-dot');
+  const label = document.getElementById('mp-label');
+  const tip = document.getElementById('mp-tooltip');
+  if (!dot) return;
+  if (mpOnline === null) {
+    dot.className = 'w-2 h-2 rounded-full bg-tertiary';
+    label.textContent = 'MP: Checking...';
+  } else if (mpOnline) {
+    dot.className = 'w-2 h-2 rounded-full bg-secondary';
+    label.textContent = 'MP: Online';
+    label.className = 'text-secondary text-sm font-semibold';
+    const pt = {1:'Starter',2:'Standard',3:'Pro'}[tenant.moneypenny_power]||'Unknown';
+    tip.innerHTML = `<div class="text-secondary mb-2 font-semibold">Moneypenny is running</div><div class="text-on-surface-variant text-sm">Power: <strong>${tenant.moneypenny_power} \u2014 ${pt}</strong></div>`;
+  } else {
+    dot.className = 'w-2 h-2 rounded-full bg-error';
+    label.textContent = 'MP: Offline';
+    label.className = 'text-error text-sm font-semibold';
+    tip.innerHTML = `<div class="text-error font-semibold">Moneypenny is not responding</div>`;
+  }
+}
+
+function toggleMpTip() {
+  const tip = document.getElementById('mp-tooltip');
+  tip.classList.toggle('hidden');
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('#mp-badge')) document.getElementById('mp-tooltip')?.classList.add('hidden');
+});
+
+/* ================================================================
+   JOB CRUD
+================================================================ */
+async function runJobNow(id) {
+  try { await fetch(`${API}/jobs/${id}/run`, {method:'POST'}); toast('Job triggered','success'); }
+  catch { toast('Could not trigger job','error'); }
+  setTimeout(fetchAll, 2000);
+}
+
+async function toggleJob(id) {
+  const j = jobs.find(x=>x.id===id);
+  if (!j) return;
+  await fetch(`${API}/jobs/${id}`, {method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({enabled: !isOn(j)})});
+  await fetchAll();
+  renderCurrentView();
+}
+
+async function deleteJob() {
+  if (!editingJobId) return;
+  if (!confirm('Delete this automation?')) return;
+  try {
+    await apiFetch('DELETE', `/jobs/${editingJobId}`);
+    toast('Deleted','success'); closeModal('job-modal'); await fetchAll(); renderCurrentView();
+  } catch { toast('Delete failed','error'); }
+}
+
+async function qaRunAll(pid) {
+  const pJobs = jobs.filter(j => personOf(j) === pid && isOn(j));
+  if (!pJobs.length) { toast('No active jobs to run', 'error'); return; }
+  const pName = family.find(f=>f.id===pid)?.name || pid;
+  if (!confirm(`Run all ${pJobs.length} active jobs for ${pName}?`)) return;
+  try {
+    await Promise.all(pJobs.map(j => fetch(`${API}/jobs/${j.id}/run`, {method:'POST'})));
+    toast(`Triggered ${pJobs.length} jobs`, 'success');
+  } catch { toast('Some jobs failed to trigger', 'error'); }
+}
+
+/* ================================================================
+   NAVIGATION
+================================================================ */
+function switchTo(viewOrPersonId) {
+  const person = family.find(p=>p.id===viewOrPersonId);
+  if (person) {
+    activePerson = viewOrPersonId;
+    activeView = 'person';
+    sessionStorage.setItem('jp_person', viewOrPersonId);
+  } else {
+    activeView = viewOrPersonId;
+  }
+  renderApp();
+}
+
+function enterPortal(personId) {
+  document.getElementById('screen-landing').classList.add('hidden');
+  document.getElementById('screen-app').classList.remove('hidden');
+  if (personId) switchTo(personId);
+  else switchTo(family[0]?.id || 'rotem');
+}
+
+function goHome() {
+  sessionStorage.removeItem('jp_person');
+  document.getElementById('screen-app').classList.add('hidden');
+  document.getElementById('screen-landing').classList.remove('hidden');
+  renderLanding();
+  // Mark home active in sidebar
+  document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('active'));
+  document.getElementById('nav-home')?.classList.add('active');
+}
+
+/* ================================================================
+   RENDER: LANDING
+================================================================ */
+function renderLanding() {
+  const owner = tenant?.owner || '';
+  const familyName = owner === 'Rotem' ? 'The Ben-Israel Family' : owner ? `The ${owner} Family` : 'Family Nexus';
+  document.getElementById('landing-title').textContent = familyName;
+  const activeFamily = family;
+  document.getElementById('ls-members').textContent = activeFamily.length;
+  document.getElementById('ls-jobs').textContent = jobs.filter(j=>isOn(j)).length;
+
+  const grid = document.getElementById('landing-grid');
+  grid.innerHTML = activeFamily.map(p => {
+    const pJobs = jobs.filter(j => personOf(j) === p.id);
+    const activeJobs = pJobs.filter(j => isOn(j));
+    const hColor = healthDotColor(p);
+    const dotClass = hColor==='green' ? 'bg-secondary' : hColor==='yellow' ? 'bg-tertiary' : 'bg-error';
+    const dotLabel = hColor==='green' ? 'Healthy' : hColor==='yellow' ? 'Warning' : 'Issue';
+    const lastRun = pJobs.filter(j=>j.last_run).sort((a,b)=>new Date(b.last_run)-new Date(a.last_run))[0];
+    const avatarContent = p.photo
+      ? `<img src="${p.photo}" class="w-full h-full object-cover rounded-full" onerror="this.outerHTML='<div class=\\'avatar-inner w-full h-full text-3xl\\'>${p.emoji}</div>'">`
+      : `<div class="avatar-inner w-full h-full text-3xl">${p.emoji}</div>`;
+    return `<div class="landing-card bg-surface-container-low rounded-xl overflow-hidden border-l-2 border-transparent cursor-pointer" onclick="enterPortal('${p.id}')">
+      <!-- Card top accent -->
+      <div class="h-1.5 w-full" style="background:linear-gradient(90deg,${p.color||'#a2c9ff'}44,${p.color||'#a2c9ff'}11)"></div>
+      <div class="p-5">
+        <div class="flex items-start gap-4 mb-4">
+          <div class="relative flex-shrink-0">
+            <div class="avatar-ring w-16 h-16">${avatarContent}</div>
+            <span class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full ${dotClass} ring-2 ring-surface-container-low" title="${dotLabel}"></span>
+          </div>
+          <div class="min-w-0 flex-1 pt-1">
+            <div class="font-headline font-bold text-base text-on-surface leading-tight">${p.name}</div>
+            <div class="text-xs text-on-surface-variant mt-0.5">${p.relation}</div>
+            <div class="flex items-center gap-2 mt-2 flex-wrap">
+              <span class="chip-info text-xs px-2 py-0.5 rounded-full font-semibold">${activeJobs.length} agent${activeJobs.length!==1?'s':''}</span>
+              ${lastRun ? `<span class="text-xs text-on-surface-variant">${relTime(lastRun.last_run)}</span>` : '<span class="text-xs text-on-surface-variant/50">No runs yet</span>'}
+            </div>
+          </div>
+        </div>
+        <div class="flex items-center justify-between">
+          <div class="text-xs text-on-surface-variant">${pJobs.length} automation${pJobs.length!==1?'s':''} configured</div>
+          <span class="text-xs font-semibold text-primary">Open →</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('') + `<div class="add-card rounded-xl p-5 flex flex-col items-center justify-center text-on-surface-variant hover:text-primary min-h-[160px]" onclick="openAddPerson()">
+    <span class="material-symbols-outlined text-3xl mb-2">person_add</span>
+    <span class="text-sm font-semibold">Add Family Member</span>
+    <span class="text-xs text-on-surface-variant mt-1">Initialize new node</span>
+  </div>`;
+}
+
+/* ================================================================
+   RENDER: APP (sidebar, topbar, views)
+================================================================ */
+function renderApp() {
+  renderSidebar();
+  renderTopbar();
+  renderCurrentView();
+}
+
+function renderSidebar() {
+  const el = document.getElementById('sidebar-family');
+  el.innerHTML = family.map(p => {
+    const isActive = activeView === 'person' && activePerson === p.id;
+    const pJobs = jobs.filter(j => personOf(j) === p.id);
+    const agentCount = pJobs.filter(j => isOn(j)).length;
+    const hColor = healthDotColor(p);
+    const dotClass = hColor==='green' ? 'bg-secondary' : hColor==='yellow' ? 'bg-tertiary' : 'bg-error';
+    return `<button onclick="switchTo('${p.id}')" class="sidebar-item ${isActive?'active':''} flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm w-full text-left hover:bg-surface-container-high">
+      <span class="text-base flex-shrink-0">${p.emoji}</span>
+      <span class="sidebar-label flex-1 min-w-0 truncate ${isActive?'text-primary font-semibold':'text-on-surface-variant'}">${p.name}</span>
+      <span class="text-xs px-1.5 py-0.5 rounded bg-surface-container-high text-on-surface-variant">${agentCount}</span>
+      <span class="w-2 h-2 rounded-full ${dotClass} flex-shrink-0"></span>
+    </button>`;
+  }).join('');
+
+  // Update nav items
+  ['activity','timeline','syslog'].forEach(id => {
+    const el = document.getElementById('nav-'+id);
+    if (el) el.classList.toggle('active', activeView === id);
+  });
+  document.getElementById('sidebar-status').textContent = mpOnline === false ? 'MP Offline' : 'System Online';
+  document.getElementById('sidebar-status').className = `text-xs font-semibold ${mpOnline === false ? 'text-error' : 'text-secondary'}`;
+}
+
+function renderTopbar() {
+  const el = document.getElementById('topbar-title');
+  if (activeView === 'person') {
+    const p = family.find(f=>f.id===activePerson);
+    el.textContent = p ? p.name : 'Profile';
+  } else if (activeView === 'activity') el.textContent = 'Activity Stream';
+  else if (activeView === 'timeline') el.textContent = 'System Timeline';
+  else if (activeView === 'syslog') el.textContent = 'System Log';
+  else el.textContent = 'Jarvis Portal';
+}
+
+function renderCurrentView() {
+  ['view-person','view-activity','view-timeline','view-syslog'].forEach(id => {
+    document.getElementById(id).classList.add('hidden');
+  });
+  if (activeView === 'person') {
+    document.getElementById('view-person').classList.remove('hidden');
+    renderPersonView();
+  } else if (activeView === 'activity') {
+    document.getElementById('view-activity').classList.remove('hidden');
+    renderActivityView();
+  } else if (activeView === 'timeline') {
+    document.getElementById('view-timeline').classList.remove('hidden');
+    renderTimelineView();
+  } else if (activeView === 'syslog') {
+    document.getElementById('view-syslog').classList.remove('hidden');
+    renderSyslogView();
+  }
+}
+
+/* ================================================================
+   RENDER: PERSON PROFILE
+================================================================ */
+function renderPersonView() {
+  const p = family.find(f=>f.id===activePerson);
+  if (!p) return;
+  const pJobs = jobs.filter(j => personOf(j) === p.id);
+  const activeJobs = pJobs.filter(j => isOn(j));
+  const hColor = healthDotColor(p);
+  const dotClass = hColor==='green' ? 'bg-secondary' : hColor==='yellow' ? 'bg-tertiary' : 'bg-error';
+  const recommended = COVERAGE_BY_RELATION[p.relation] || COVERAGE_BY_RELATION[p.relation?.toLowerCase()] || [];
+  const covered = new Set(activeJobs.map(j => agentOf(j)));
+  const coverCount = recommended.filter(t => covered.has(t)).length;
+  const coverTotal = recommended.length;
+  const coverColor = coverTotal === 0 ? 'text-on-surface-variant' : coverCount >= coverTotal ? 'text-secondary' : coverCount >= coverTotal/2 ? 'text-tertiary' : 'text-on-surface-variant';
+
+  // Profile header strip
+  document.getElementById('person-header').innerHTML = `
+    <div class="flex items-start gap-5">
+      <div class="relative flex-shrink-0">
+        <div class="avatar-ring w-16 h-16"><div class="avatar-inner w-full h-full text-3xl">${p.emoji}</div></div>
+        <span class="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full ${dotClass} ring-2 ring-surface"></span>
+      </div>
+      <div class="flex-1 min-w-0">
+        <h1 class="font-headline text-3xl font-extrabold text-on-surface">${p.name}</h1>
+        <div class="flex items-center gap-2 mt-1 flex-wrap">
+          <span class="chip-info text-xs font-semibold px-2.5 py-0.5 rounded-full">${p.relation}</span>
+          <span class="${coverColor} text-xs font-semibold">${coverTotal > 0 ? `${coverCount}/${coverTotal} agents` : `${activeJobs.length} agents`}</span>
+          ${p.quiet_hours ? `<span class="text-xs text-on-surface-variant">${fmt12(p.quiet_hours.start)} \u2014 ${fmt12(p.quiet_hours.end)}</span>` : ''}
+          ${isVacation(p) ? '<span class="chip-warning text-xs font-semibold px-2.5 py-0.5 rounded-full">On Vacation</span>' : ''}
+        </div>
+        <div class="flex items-center gap-3 mt-3">
+          <button onclick="openEditPerson('${p.id}')" class="text-xs text-primary hover:underline font-semibold">Edit Profile</button>
+          <button onclick="openAddAgent('${p.id}')" class="text-xs text-primary hover:underline font-semibold">+ Add Agent</button>
+          ${!isVacation(p) ? `<button onclick="openVacation('${p.id}')" class="text-xs text-on-surface-variant hover:text-on-surface font-semibold">Vacation Mode</button>` : `<button onclick="endVacation('${p.id}')" class="text-xs text-tertiary hover:underline font-semibold">End Vacation</button>`}
+        </div>
+      </div>
+    </div>`;
+
+  // Calendar strip
+  const cached = calCache[p.id];
+  const calHtml = !cached ? '<span class="text-on-surface-variant text-xs">Loading...</span>' : cached.events ? formatCalStrip(cached.events, p.name) : '<span class="text-on-surface-variant text-xs">Calendar unavailable</span>';
+  if (!cached) fetchPersonCalendar(p.id);
+  document.getElementById('person-calendar').innerHTML = `
+    <div class="bg-surface-container-low rounded-xl px-5 py-4">
+      <div class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-2">TODAY</div>
+      <div class="flex flex-wrap gap-2" id="cal-strip-${p.id}">${calHtml}</div>
+    </div>`;
+
+  // Agent categories (collapsible)
+  const cats = {};
+  pJobs.forEach(j => {
+    const atId = agentOf(j);
+    const at = AGENT_TYPES.find(a=>a.id===atId) || {cat:'custom'};
+    const cat = AGENT_CATEGORIES.find(c=>c.id===at.cat) || AGENT_CATEGORIES[7];
+    if (!cats[cat.id]) cats[cat.id] = {cat, jobs: []};
+    cats[cat.id].jobs.push(j);
+  });
+
+  const catKeys = Object.keys(cats).sort((a,b) => {
+    const oi = AGENT_CATEGORIES.findIndex(c=>c.id===a);
+    const oj = AGENT_CATEGORIES.findIndex(c=>c.id===b);
+    return oi - oj;
+  });
+
+  document.getElementById('person-agents').innerHTML = catKeys.map(key => {
+    const {cat, jobs: catJobs} = cats[key];
+    const stateKey = `${p.id}_${cat.id}`;
+    const collapsed = categoryStates[stateKey] === true;
+    return `<div class="mb-3">
+      <button onclick="toggleCategory('${stateKey}')" class="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-left" style="background: ${cat.color}14">
+        <span style="color:${cat.color}">${cat.icon}</span>
+        <span class="font-headline font-bold text-sm text-on-surface flex-1">${cat.name}</span>
+        <span class="text-xs px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant">${catJobs.length}</span>
+        <span class="material-symbols-outlined text-on-surface-variant text-lg cat-chevron-${stateKey}">${collapsed?'expand_more':'expand_less'}</span>
+      </button>
+      <div class="cat-content-${stateKey} ${collapsed?'hidden':''}">
+        ${catJobs.map(j => renderAgentCard(j, p)).join('')}
+      </div>
+    </div>`;
+  }).join('') || '<div class="text-center py-8 text-on-surface-variant">No agents configured. <button onclick="openAddAgent(\''+p.id+'\')" class="text-primary hover:underline font-semibold">Add one</button></div>';
+
+  // Right column: Execution status
+  const now = new Date();
+  const midnight = new Date(now); midnight.setHours(0,0,0,0);
+  const ranToday = pJobs.filter(j => j.last_run && new Date(j.last_run) > midnight).length;
+  const nextJob = activeJobs.filter(j => j.next_run && new Date(j.next_run) > now).sort((a,b)=>new Date(a.next_run)-new Date(b.next_run))[0];
+  const lastRanJob = pJobs.filter(j=>j.last_run).sort((a,b)=>new Date(b.last_run)-new Date(a.last_run))[0];
+
+  // Streak calc
+  let streak = 0;
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(); d.setDate(d.getDate() - i); d.setHours(0,0,0,0);
+    const dayStr = d.toISOString().substring(0,10);
+    const hadRun = pJobs.some(j => j.last_run && j.last_run.startsWith(dayStr));
+    if (hadRun) streak++; else break;
+  }
+
+  document.getElementById('person-exec-status').innerHTML = `
+    <h3 class="font-headline font-bold text-sm text-on-surface-variant uppercase tracking-wider mb-4">Execution Status</h3>
+    <div class="mb-3">
+      <div class="text-xs text-on-surface-variant">Next Run</div>
+      <div class="font-headline text-2xl font-bold text-on-surface">${nextJob ? relTime(nextJob.next_run) : '\u2014'}</div>
+      ${nextJob ? `<div class="text-xs text-on-surface-variant mt-0.5">${labelOf(nextJob.name)}</div>` : ''}
+    </div>
+    <div class="mb-4">
+      <div class="text-xs text-on-surface-variant">Last Active</div>
+      <div class="text-sm font-semibold text-on-surface">${lastRanJob ? relTime(lastRanJob.last_run) : '\u2014'}</div>
+    </div>
+    <div class="grid grid-cols-2 gap-3">
+      <div class="bg-surface-container-high rounded-lg p-3 text-center">
+        <div class="font-headline text-xl font-bold text-on-surface">${ranToday}</div>
+        <div class="text-xs text-on-surface-variant">Ran Today</div>
+      </div>
+      <div class="bg-surface-container-high rounded-lg p-3 text-center">
+        <div class="font-headline text-xl font-bold text-on-surface">${streak}${streak >= 3 ? ' \uD83D\uDD25' : ''}</div>
+        <div class="text-xs text-on-surface-variant">Streak</div>
+      </div>
+    </div>`;
+
+  // Recent activity
+  const allRuns = Object.entries(recentRunOutputs)
+    .filter(([jid]) => pJobs.some(j => String(j.id) === String(jid)))
+    .map(([jid, r]) => ({jid, ...r, j: jobs.find(j=>String(j.id)===String(jid))}))
+    .filter(r => r.j)
+    .sort((a,b) => new Date(b.ts) - new Date(a.ts))
+    .slice(0, 5);
+
+  document.getElementById('person-recent').innerHTML = `
+    <h3 class="font-headline font-bold text-sm text-on-surface-variant uppercase tracking-wider mb-3">Recent Activity</h3>
+    ${allRuns.length ? allRuns.map(r => {
+      const at = AGENT_TYPES.find(a=>a.id===agentOf(r.j));
+      const isFailed = r.status === 'failed';
+      return `<div class="flex items-center gap-2.5 py-2 ${isFailed ? 'bg-error/5 -mx-2 px-2 rounded-lg' : ''}">
+        <span style="color:${at?.color||'#8b919d'}" class="text-sm">${at?.icon||'\u2699\uFE0F'}</span>
+        <span class="text-sm text-on-surface font-medium flex-1 min-w-0 truncate">${labelOf(r.j.name)}</span>
+        <span class="w-2 h-2 rounded-full flex-shrink-0 ${isFailed ? 'bg-error' : 'bg-secondary'}"></span>
+        <span class="text-xs text-on-surface-variant flex-shrink-0">${relTime(r.ts)}</span>
+      </div>`;
+    }).join('') : '<div class="text-sm text-on-surface-variant">No recent activity</div>'}`;
+
+  // Quick actions
+  const morningJob = pJobs.find(j => /morning-chaos|morning.chaos/i.test(j.name||''));
+  document.getElementById('person-quick-actions').innerHTML = `
+    ${morningJob ? `<button onclick="runJobNow('${morningJob.id}')" class="w-full py-3 rounded-xl bg-gradient-to-r from-primary/20 to-secondary/20 text-on-surface font-semibold text-sm hover:from-primary/30 hover:to-secondary/30 transition-all">Run morning brief now</button>` : ''}
+    <button onclick="qaRunAll('${p.id}')" class="w-full py-2.5 rounded-xl bg-surface-container-high text-on-surface-variant font-semibold text-sm hover:bg-surface-container-highest hover:text-on-surface transition-all">Run all agents for ${p.name}</button>`;
+}
+
+function renderAgentCard(j, p) {
+  const at = AGENT_TYPES.find(a=>a.id===agentOf(j));
+  const ch = channelOf(j);
+  const enabled = isOn(j);
+  const status = j.status === 'failed' ? 'bg-error' : enabled ? 'bg-secondary' : 'bg-outline';
+  const lastOutput = recentRunOutputs[j.id];
+  return `<div class="agent-card group rounded-lg mx-1 my-0.5 bg-surface-container-low">
+    <span class="w-2 h-2 rounded-full ${status} flex-shrink-0"></span>
+    <div class="flex-1 min-w-0">
+      <div class="text-sm font-semibold text-on-surface truncate">${labelOf(j.name)}</div>
+      <div class="text-xs text-on-surface-variant">${cronDesc(j.schedule_value||'')}</div>
+    </div>
+    <span class="text-xs flex-shrink-0" title="${ch.label}">${ch.icon}</span>
+    <div class="card-actions">
+      <button onclick="event.stopPropagation();runJobNow('${j.id}')" class="w-7 h-7 rounded-md hover:bg-surface-container-high flex items-center justify-center text-on-surface-variant hover:text-secondary" title="Run now">
+        <span class="material-symbols-outlined text-base">play_arrow</span>
+      </button>
+      <button onclick="event.stopPropagation();openEditJob('${j.id}')" class="w-7 h-7 rounded-md hover:bg-surface-container-high flex items-center justify-center text-on-surface-variant hover:text-primary" title="Edit">
+        <span class="material-symbols-outlined text-base">edit</span>
+      </button>
+      <button onclick="event.stopPropagation();toggleJob('${j.id}')" class="w-7 h-7 rounded-md hover:bg-surface-container-high flex items-center justify-center text-on-surface-variant hover:text-tertiary" title="${enabled?'Disable':'Enable'}">
+        <span class="material-symbols-outlined text-base">${enabled?'toggle_on':'toggle_off'}</span>
+      </button>
+    </div>
+  </div>`;
+}
+
+function toggleCategory(key) {
+  categoryStates[key] = !categoryStates[key];
+  const content = document.querySelector('.cat-content-'+key);
+  const chevron = document.querySelector('.cat-chevron-'+key);
+  if (content) content.classList.toggle('hidden');
+  if (chevron) chevron.textContent = categoryStates[key] ? 'expand_more' : 'expand_less';
+  try { sessionStorage.setItem('jp_cats', JSON.stringify(categoryStates)); } catch {}
+}
+
+/* ================================================================
+   RENDER: ACTIVITY STREAM
+================================================================ */
+function renderActivityView() {
+  const filters = document.getElementById('activity-filters');
+  const personOptions = [{id:'all',label:'All'},...family.filter(p=>p.contact_tier>0).map(p=>({id:p.id,label:p.name}))];
+  filters.innerHTML = `
+    <div class="flex flex-wrap gap-2">
+      ${['all','today','failed'].map(f => `<button onclick="setActivityFilter('${f}')" class="px-3 py-1.5 rounded-full text-xs font-semibold ${sysLogFilter===f?'chip-info':'chip-muted'} hover:opacity-80 transition-opacity">${f==='all'?'All Activity':f==='today'?'Today':'\u26A0 Failed'}</button>`).join('')}
+      <select onchange="setActivityPerson(this.value)" class="bg-surface-container-high text-on-surface rounded-lg px-3 py-1.5 text-xs outline-none">
+        ${personOptions.map(o=>`<option value="${o.id}"${sysLogPerson===o.id?' selected':''}>${o.label}</option>`).join('')}
+      </select>
+    </div>`;
+
+  loadActivityTable();
+  loadConsole();
+}
+
+function setActivityFilter(f) {
+  sysLogFilter = f;
+  if (f === 'today') sysLogDateFilter = 'today';
+  else if (f === 'failed') { sysLogFilter = 'failed'; sysLogDateFilter = 'all'; }
+  else { sysLogFilter = 'all'; sysLogDateFilter = 'all'; }
+  renderActivityView();
+}
+
+function setActivityPerson(pid) {
+  sysLogPerson = pid;
+  renderActivityView();
+}
+
+async function loadActivityTable() {
+  const el = document.getElementById('activity-table');
+  try {
+    const runs = await fetch(`${API}/jobs/runs?limit=100`).then(r=>r.json());
+    if (!Array.isArray(runs)) { el.innerHTML = '<div class="p-4 text-on-surface-variant text-sm">No data</div>'; return; }
+
+    let filtered = runs;
+    if (sysLogFilter === 'failed') filtered = filtered.filter(r=>r.status==='failed');
+    if (sysLogDateFilter === 'today') {
+      const midnight = new Date(); midnight.setHours(0,0,0,0);
+      filtered = filtered.filter(r=>new Date(r.run_at)>=midnight);
+    }
+    if (sysLogPerson !== 'all') {
+      const pJobIds = new Set(jobs.filter(j=>personOf(j)===sysLogPerson).map(j=>String(j.id)));
+      filtered = filtered.filter(r=>pJobIds.has(String(r.job_id)));
+    }
+
+    el.innerHTML = `<table class="w-full"><thead><tr class="text-xs text-on-surface-variant uppercase tracking-wider">
+      <th class="text-left px-4 py-3">Agent</th><th class="text-left px-4 py-3">Person</th><th class="text-left px-4 py-3">Status</th><th class="text-left px-4 py-3">Time</th><th class="text-left px-4 py-3">Duration</th><th class="px-4 py-3"></th>
+    </tr></thead><tbody>
+    ${filtered.slice(0,50).map(r => {
+      const j = jobs.find(x=>String(x.id)===String(r.job_id));
+      const pid = j ? personOf(j) : null;
+      const pe = pid ? family.find(f=>f.id===pid) : null;
+      const ok = r.status === 'success';
+      const ts = new Date(r.run_at).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit',hour12:true});
+      const dur = r.duration_ms > 0 ? `${(r.duration_ms/1000).toFixed(1)}s` : '\u2014';
+      const durColor = !r.duration_ms ? 'text-on-surface-variant' : r.duration_ms < 30000 ? 'text-secondary' : r.duration_ms < 90000 ? 'text-tertiary' : 'text-error';
+      return `<tr class="hover:bg-surface-container-high transition-colors group">
+        <td class="px-4 py-2.5 text-sm font-medium text-on-surface">${r.display_name||labelOf(j?.name)||r.job_id}</td>
+        <td class="px-4 py-2.5 text-sm"><span class="cursor-pointer" onclick="switchTo('${pe?.id||''}')">${pe ? pe.emoji+' '+pe.name : '\u2699\uFE0F System'}</span></td>
+        <td class="px-4 py-2.5"><span class="${ok?'chip-success':'chip-error'} text-xs font-semibold px-2 py-0.5 rounded-full">${ok?'Success':'Failed'}</span></td>
+        <td class="px-4 py-2.5 text-xs text-on-surface-variant">${ts}</td>
+        <td class="px-4 py-2.5 text-xs ${durColor} font-medium">${dur}</td>
+        <td class="px-4 py-2.5"><div class="opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+          ${!ok ? `<button onclick="runJobNow('${r.job_id}')" class="text-xs text-error hover:underline">Retry</button>` : ''}
+        </div></td>
+      </tr>`;
+    }).join('')}
+    </tbody></table>`;
+  } catch(e) {
+    el.innerHTML = `<div class="p-4 text-error text-sm">Failed to load: ${e.message}</div>`;
+  }
+}
+
+async function loadConsole() {
+  const el = document.getElementById('activity-console');
+  const entries = Object.entries(recentRunOutputs)
+    .map(([jid, r]) => ({jid, ...r, j: jobs.find(j=>String(j.id)===String(jid))}))
+    .filter(r => r.j)
+    .sort((a,b) => new Date(b.ts) - new Date(a.ts))
+    .slice(0, 10);
+
+  el.innerHTML = entries.map(r => {
+    const short = (r.output||'').substring(0, 200);
+    const ok = r.status === 'success';
+    return `<div class="mb-3 pb-3" style="border-bottom: 1px solid rgba(65,71,82,0.15)">
+      <div class="flex items-center gap-2 mb-1">
+        <span class="w-1.5 h-1.5 rounded-full ${ok?'bg-secondary':'bg-error'}"></span>
+        <span class="text-xs font-semibold text-on-surface">${labelOf(r.j.name)}</span>
+        <span class="text-xs text-on-surface-variant ml-auto">${relTime(r.ts)}</span>
+      </div>
+      <div class="text-xs text-on-surface-variant break-all whitespace-pre-wrap">${short || 'No output'}</div>
+    </div>`;
+  }).join('') || '<div class="text-xs text-on-surface-variant">No recent outputs</div>';
+}
+
+/* ================================================================
+   RENDER: SYSTEM TIMELINE
+================================================================ */
+function renderTimelineView() {
+  const now = new Date();
+  const isWeekend = now.getDay() === 0 || now.getDay() === 6;
+  const midnight = new Date(now); midnight.setHours(0,0,0,0);
+
+  // Stats
+  const todayRuns = Object.values(recentRunOutputs).filter(r => new Date(r.ts) > midnight);
+  const successCount = todayRuns.filter(r=>r.status==='success').length;
+  const failedCount = todayRuns.filter(r=>r.status==='failed').length;
+  const scheduledToday = jobs.filter(j=>isOn(j)&&j.next_run).length;
+
+  document.getElementById('timeline-stats').innerHTML = `
+    <div class="bg-surface-container-low rounded-xl p-4 flex-1 text-center">
+      <div class="font-headline text-2xl font-bold text-secondary">${successCount}</div>
+      <div class="text-xs text-on-surface-variant">Successful</div>
+    </div>
+    <div class="bg-surface-container-low rounded-xl p-4 flex-1 text-center">
+      <div class="font-headline text-2xl font-bold text-error">${failedCount}</div>
+      <div class="text-xs text-on-surface-variant">Failed</div>
+    </div>
+    <div class="bg-surface-container-low rounded-xl p-4 flex-1 text-center">
+      <div class="font-headline text-2xl font-bold text-primary">${scheduledToday}</div>
+      <div class="text-xs text-on-surface-variant">Scheduled Today</div>
+    </div>`;
+
+  // Timeline thread grouped by time window
+  const zones = [
+    {name:'Morning',icon:'wb_sunny',start:0,end:720,color:'#fabc45'},
+    {name:'Afternoon',icon:'wb_cloudy',start:720,end:1020,color:'#58a6ff'},
+    {name:'Evening',icon:'nights_stay',start:1020,end:1320,color:'#a371f7'},
+    {name:'Night',icon:'dark_mode',start:1320,end:1440,color:'#8b949e'},
+  ];
+
+  const allEvents = [];
+  const activePeople = family.filter(p=>p.contact_tier>0);
+  activePeople.forEach(p => {
+    jobs.filter(j => personOf(j) === p.id && (isOn(j) || j.schedule_value)).forEach(j => {
+      const times = cronFireTimes(j.schedule_value||'', isWeekend);
+      if (!times.length) return;
+      const firstT = times[0];
+      const h = Math.floor(firstT/60), mn = firstT%60;
+      const label12 = `${h===0?12:h>12?h-12:h}:${String(mn).padStart(2,'0')} ${h<12?'AM':'PM'}`;
+      allEvents.push({t: firstT, label12, j, p, schedule: cronDesc(j.schedule_value||'')});
+    });
+  });
+  allEvents.sort((a,b) => a.t - b.t);
+
+  const currentMinute = now.getHours() * 60 + now.getMinutes();
+
+  document.getElementById('timeline-thread').innerHTML = zones.map(zone => {
+    const zoneEvents = allEvents.filter(e => e.t >= zone.start && e.t < zone.end);
+    if (!zoneEvents.length) return '';
+    return `<div class="mb-6">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="material-symbols-outlined text-lg" style="color:${zone.color}">${zone.icon}</span>
+        <span class="font-headline font-bold text-sm text-on-surface">${zone.name}</span>
+        <span class="text-xs text-on-surface-variant">${zoneEvents.length} events</span>
+      </div>
+      ${zoneEvents.map(e => {
+        const isUpcoming = e.t > currentMinute;
+        const isFailed = e.j.status === 'failed';
+        return `<div class="tl-item ${isUpcoming?'upcoming':''}${isFailed?' failed':''} py-2.5">
+          <div class="flex items-center gap-3">
+            <span class="text-xs font-mono text-on-surface-variant w-16 flex-shrink-0">${e.label12}</span>
+            <span class="text-sm">${e.p.emoji}</span>
+            <span class="text-sm font-medium text-on-surface flex-1 min-w-0 truncate">${labelOf(e.j.name)}</span>
+            <span class="text-xs text-on-surface-variant">${e.schedule}</span>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }).join('') || '<div class="text-center py-8 text-on-surface-variant">No scheduled events for today</div>';
+
+  // Density chart
+  const hourCounts = Array(24).fill(0);
+  allEvents.forEach(e => hourCounts[Math.floor(e.t/60)]++);
+  const maxCount = Math.max(...hourCounts, 1);
+
+  document.getElementById('timeline-density').innerHTML = `
+    <h3 class="font-headline font-bold text-sm text-on-surface-variant uppercase tracking-wider mb-3">Agent Run Density</h3>
+    <div class="flex items-end gap-0.5 h-20">
+      ${hourCounts.map((c,i) => `<div class="flex-1 flex flex-col items-center justify-end h-full">
+        <div class="w-full rounded-t" style="height:${c ? Math.max(8, (c/maxCount)*100) : 0}%;background:${i < 12 ? '#fabc45' : i < 17 ? '#58a6ff' : i < 22 ? '#a371f7' : '#8b949e'};opacity:${c?0.7:0.15}"></div>
+      </div>`).join('')}
+    </div>
+    <div class="flex justify-between mt-1">
+      <span class="text-xs text-on-surface-variant">12AM</span>
+      <span class="text-xs text-on-surface-variant">6AM</span>
+      <span class="text-xs text-on-surface-variant">12PM</span>
+      <span class="text-xs text-on-surface-variant">6PM</span>
+      <span class="text-xs text-on-surface-variant">12AM</span>
+    </div>`;
+
+  // Upcoming jobs
+  const upcoming = jobs.filter(j=>isOn(j)&&j.next_run&&new Date(j.next_run)>now).sort((a,b)=>new Date(a.next_run)-new Date(b.next_run)).slice(0,8);
+  document.getElementById('timeline-upcoming').innerHTML = `
+    <h3 class="font-headline font-bold text-sm text-on-surface-variant uppercase tracking-wider mb-3">Up Next</h3>
+    ${upcoming.map(j => {
+      const pe = family.find(f=>f.id===personOf(j));
+      return `<div class="flex items-center gap-2.5 py-2">
+        <span class="text-sm">${pe?.emoji||'\u2699\uFE0F'}</span>
+        <span class="text-sm text-on-surface font-medium flex-1 min-w-0 truncate">${labelOf(j.name)}</span>
+        <span class="text-xs text-primary font-semibold">${relTime(j.next_run)}</span>
+      </div>`;
+    }).join('') || '<div class="text-xs text-on-surface-variant">No upcoming jobs</div>'}`;
+}
+
+/* ================================================================
+   RENDER: SYSTEM LOG
+================================================================ */
+function renderSyslogView() {
+  const personOptions = [{id:'all',label:'All'},...family.filter(p=>p.contact_tier>0).map(p=>({id:p.id,label:p.emoji+' '+p.name}))];
+  document.getElementById('syslog-filters').innerHTML = `
+    <div class="flex flex-wrap items-center gap-2">
+      ${['all','success','failed'].map(f => `<button onclick="setSysLogFilter2('${f}')" class="px-3 py-1.5 rounded-full text-xs font-semibold ${sysLogFilter===f?'chip-info':'chip-muted'} hover:opacity-80">${f==='all'?'All':f==='success'?'Success':'Failed'}</button>`).join('')}
+      ${['all','today','week'].map(d => `<button onclick="setSysLogDate('${d}')" class="px-3 py-1.5 rounded-full text-xs font-semibold ${sysLogDateFilter===d?'chip-info':'chip-muted'} hover:opacity-80">${d==='all'?'Any time':d==='today'?'Today':'This week'}</button>`).join('')}
+      <select onchange="sysLogPerson=this.value;renderSyslogView()" class="bg-surface-container-high text-on-surface rounded-lg px-3 py-1.5 text-xs outline-none">
+        ${personOptions.map(o=>`<option value="${o.id}"${sysLogPerson===o.id?' selected':''}>${o.label}</option>`).join('')}
+      </select>
+      <input type="text" placeholder="Search..." value="${sysLogSearch}" oninput="sysLogSearch=this.value;clearTimeout(searchDebounce);searchDebounce=setTimeout(()=>renderSyslogView(),300)" class="bg-surface-container-high text-on-surface rounded-lg px-3 py-1.5 text-xs outline-none w-40">
+      <div class="flex-1"></div>
+      <button onclick="exportSysLogCSV()" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-on-surface-variant hover:text-on-surface bg-surface-container-high">Export CSV</button>
+    </div>`;
+
+  loadSyslogTable();
+}
+
+function setSysLogFilter2(f) { sysLogFilter = f; sysLogPage = 0; renderSyslogView(); }
+function setSysLogDate(d) { sysLogDateFilter = d; sysLogPage = 0; renderSyslogView(); }
+
+async function loadSyslogTable() {
+  const el = document.getElementById('syslog-table');
+  try {
+    const runs = await fetch(`${API}/jobs/runs?limit=500`).then(r=>r.json());
+    if (!Array.isArray(runs)) { el.innerHTML = '<div class="p-4 text-on-surface-variant text-sm">No data</div>'; return; }
+
+    let filtered = runs;
+    if (sysLogFilter !== 'all') filtered = filtered.filter(r=>r.status===sysLogFilter);
+    if (sysLogDateFilter !== 'all') {
+      const cutoff = new Date();
+      if (sysLogDateFilter === 'today') cutoff.setHours(0,0,0,0);
+      else if (sysLogDateFilter === 'week') cutoff.setDate(cutoff.getDate()-7);
+      filtered = filtered.filter(r=>new Date(r.run_at)>=cutoff);
+    }
+    if (sysLogPerson !== 'all') {
+      const pJobIds = new Set(jobs.filter(j=>personOf(j)===sysLogPerson).map(j=>String(j.id)));
+      filtered = filtered.filter(r=>pJobIds.has(String(r.job_id)));
+    }
+    if (sysLogSearch.trim()) {
+      const q = sysLogSearch.toLowerCase();
+      filtered = filtered.filter(r=>(r.display_name||r.job_id||'').toLowerCase().includes(q)||(r.result||r.error||'').toLowerCase().includes(q));
+    }
+
+    const pageSize = 30;
+    const totalPages = Math.ceil(filtered.length / pageSize);
+    const page = filtered.slice(sysLogPage * pageSize, (sysLogPage+1) * pageSize);
+
+    el.innerHTML = `<table class="w-full"><thead><tr class="text-xs text-on-surface-variant uppercase tracking-wider">
+      <th class="text-left px-4 py-3">Status</th><th class="text-left px-4 py-3">Time</th><th class="text-left px-4 py-3">Job</th><th class="text-left px-4 py-3">Person</th><th class="text-left px-4 py-3">Duration</th><th class="text-left px-4 py-3">Output</th>
+    </tr></thead><tbody>
+    ${page.map((r, idx) => {
+      const j = jobs.find(x=>String(x.id)===String(r.job_id));
+      const pid = j ? personOf(j) : null;
+      const pe = pid ? family.find(f=>f.id===pid) : null;
+      const ok = r.status === 'success';
+      const ts = new Date(r.run_at).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit',hour12:true});
+      const dur = r.duration_ms > 0 ? `${(r.duration_ms/1000).toFixed(1)}s` : '\u2014';
+      const fullText = (r.result||r.error||'').replace(/<internal>[\s\S]*?<\/internal>/gi,'').trim();
+      const preview = fullText.substring(0, 80);
+      const detailId = 'syslog-d-'+idx;
+      return `<tr class="hover:bg-surface-container-high transition-colors cursor-pointer" onclick="document.getElementById('${detailId}').classList.toggle('hidden')">
+        <td class="px-4 py-2.5"><span class="w-2 h-2 rounded-full inline-block ${ok?'bg-secondary':'bg-error'}"></span></td>
+        <td class="px-4 py-2.5 text-xs text-on-surface-variant whitespace-nowrap">${ts}</td>
+        <td class="px-4 py-2.5 text-sm font-medium text-on-surface">${r.display_name||labelOf(j?.name)||r.job_id}</td>
+        <td class="px-4 py-2.5 text-sm">${pe ? pe.emoji+' '+pe.name : 'System'}</td>
+        <td class="px-4 py-2.5 text-xs text-on-surface-variant">${dur}</td>
+        <td class="px-4 py-2.5 text-xs text-on-surface-variant max-w-xs truncate">${preview}</td>
+      </tr>
+      <tr id="${detailId}" class="hidden"><td colspan="6" class="px-4 py-3 bg-surface-container-high">
+        <pre class="console-output text-xs text-on-surface-variant whitespace-pre-wrap break-all max-h-48 overflow-y-auto">${fullText||'No output'}</pre>
+      </td></tr>`;
+    }).join('')}
+    </tbody></table>
+    <div class="text-xs text-on-surface-variant text-center py-2">${filtered.length} run${filtered.length!==1?'s':''}</div>`;
+
+    document.getElementById('syslog-pagination').innerHTML = totalPages > 1 ? `
+      <button onclick="sysLogPage=Math.max(0,sysLogPage-1);loadSyslogTable()" class="px-3 py-1.5 rounded-lg text-xs font-semibold ${sysLogPage>0?'text-primary':'text-on-surface-variant'} bg-surface-container-high" ${sysLogPage===0?'disabled':''}>Prev</button>
+      <span class="text-xs text-on-surface-variant">${sysLogPage+1} / ${totalPages}</span>
+      <button onclick="sysLogPage=Math.min(${totalPages-1},sysLogPage+1);loadSyslogTable()" class="px-3 py-1.5 rounded-lg text-xs font-semibold ${sysLogPage<totalPages-1?'text-primary':'text-on-surface-variant'} bg-surface-container-high" ${sysLogPage>=totalPages-1?'disabled':''}>Next</button>
+    ` : '';
+  } catch(e) {
+    el.innerHTML = `<div class="p-4 text-error text-sm">Failed to load: ${e.message}</div>`;
+  }
+}
+
+async function exportSysLogCSV() {
+  try {
+    const runs = await fetch(`${API}/jobs/runs?limit=500`).then(r=>r.json());
+    if (!Array.isArray(runs) || !runs.length) { toast('No data to export','error'); return; }
+    const esc = v => `"${String(v||'').replace(/"/g,'""')}"`;
+    const lines = ['Date,Job,Person,Status,Duration(s),Output'];
+    runs.forEach(r => {
+      const j = jobs.find(x=>String(x.id)===String(r.job_id));
+      const pid = j ? personOf(j) : '';
+      const p = pid ? family.find(f=>f.id===pid) : null;
+      const out = (r.result||r.error||'').replace(/<internal>[\s\S]*?<\/internal>/gi,'').trim().substring(0,200);
+      lines.push([esc(new Date(r.run_at).toLocaleString()),esc(r.display_name||r.job_id),esc(p?.name||'System'),esc(r.status),esc(r.duration_ms>0?(r.duration_ms/1000).toFixed(1):''),esc(out)].join(','));
+    });
+    const blob = new Blob([lines.join('\n')], {type:'text/csv'});
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+    a.download = `jarvis-syslog-${new Date().toISOString().substring(0,10)}.csv`;
+    a.click(); URL.revokeObjectURL(a.href);
+    toast('Exported!','success');
+  } catch { toast('Export failed','error'); }
+}
+
+/* ================================================================
+   JOB MODAL
+================================================================ */
+function openEditJob(id) {
+  const j = jobs.find(j=>String(j.id)===String(id)); if(!j) return;
+  editingJobId = id;
+  const cron = j.schedule_value||'';
+  pickedCron = cron;
+  document.getElementById('jm-title').textContent = 'Edit Automation';
+  document.getElementById('jf-name').value = labelOf(j.name);
+  populatePersonSelect(personOf(j));
+  document.getElementById('jf-prompt').value = j.prompt||'';
+  document.getElementById('jf-prompt-chars').textContent = (j.prompt||'').length+' chars';
+  document.getElementById('jf-cron').value = cron;
+  document.getElementById('jf-cron-val').value = cron;
+  document.getElementById('sched-display').textContent = cronDesc(cron)||'Custom schedule';
+  document.getElementById('jm-del').classList.remove('hidden');
+  document.getElementById('jm-clone').classList.remove('hidden');
+  document.getElementById('cron-adv').classList.add('hidden');
+  document.getElementById('jm-dupe-warn').classList.add('hidden');
+  buildSchedPills(cron);
+  showNextFires(cron);
+  openModal('job-modal');
+}
+
+function openAddJob(pid, agentTypeId) {
+  editingJobId = null; addingForPerson = pid; pickedCron = '';
+  document.getElementById('jm-title').textContent = 'New Automation';
+  document.getElementById('jf-name').value = '';
+  populatePersonSelect(pid);
+  document.getElementById('jf-cron').value = '';
+  document.getElementById('jf-cron-val').value = '';
+  document.getElementById('sched-display').textContent = 'Pick a schedule above';
+  document.getElementById('jm-del').classList.add('hidden');
+  document.getElementById('jm-clone').classList.add('hidden');
+  document.getElementById('cron-adv').classList.add('hidden');
+  buildSchedPills('', agentTypeId);
+
+  // Dupe warning
+  const dupeWarn = document.getElementById('jm-dupe-warn');
+  if (agentTypeId && agentTypeId !== 'custom' && pid) {
+    const existing = jobs.filter(j => personOf(j) === pid && agentOf(j) === agentTypeId);
+    if (existing.length > 0) {
+      const pName = family.find(f=>f.id===pid)?.name || pid;
+      const atName = AGENT_TYPES.find(a=>a.id===agentTypeId)?.name || agentTypeId;
+      dupeWarn.textContent = `${pName} already has a ${atName} agent (${existing.length} job${existing.length>1?'s':''}). Adding another creates a duplicate.`;
+      dupeWarn.classList.remove('hidden');
+    } else dupeWarn.classList.add('hidden');
+  } else dupeWarn.classList.add('hidden');
+
+  // Auto-suggest name
+  const at = AGENT_TYPES.find(a=>a.id===agentTypeId);
+  const p2 = family.find(f=>f.id===pid);
+  if (at && p2 && at.id !== 'custom') {
+    document.getElementById('jf-name').value = `${p2.name}: ${at.name}`;
+  }
+
+  // Template
+  let template = '';
+  if (agentTypeId && agentTypeId !== 'custom') {
+    template = TEMPLATES[`${agentTypeId}:${pid}`] || TEMPLATE_ANY[agentTypeId] || '';
+    if (template) {
+      const p = family.find(f=>f.id===pid);
+      template = template.replace(/\{name\}/g, p?.name||pid).replace(/\{channel\}/g, p?.preferred_channel||'whatsapp');
+    }
+  }
+  document.getElementById('jf-prompt').value = template;
+  document.getElementById('jf-prompt-chars').textContent = template.length+' chars';
+  openModal('job-modal');
+}
+
+function populatePersonSelect(selectedPid) {
+  const sel = document.getElementById('jf-person');
+  sel.innerHTML = family.filter(p=>p.contact_tier>0).map(p =>
+    `<option value="${p.id}"${p.id===selectedPid?' selected':''}>${p.name}</option>`
+  ).join('') + '<option value="system">System</option>';
+  if (selectedPid === 'system') sel.value = 'system';
+}
+
+function buildSchedPills(activeCron, agentTypeId) {
+  const atCat = AGENT_TYPES.find(a=>a.id===agentTypeId)?.cat || '';
+  const sorted = [...SCHEDULES].sort((a,b)=>{
+    const aMatch = a.cat === agentTypeId || a.cat === atCat;
+    const bMatch = b.cat === agentTypeId || b.cat === atCat;
+    return (bMatch?1:0)-(aMatch?1:0);
+  });
+  document.getElementById('sched-pills').innerHTML = sorted.map(s =>
+    `<button type="button" class="sched-pill px-3 py-1 rounded-full text-xs font-semibold bg-surface-container-high text-on-surface-variant ${s.cron===activeCron?'picked':''}" onclick="pickSched('${s.cron}',this)">${s.label}</button>`
+  ).join('');
+}
+
+function pickSched(cron, btn) {
+  pickedCron = cron;
+  document.querySelectorAll('.sched-pill').forEach(b=>b.classList.remove('picked'));
+  btn.classList.add('picked');
+  document.getElementById('jf-cron-val').value = cron;
+  document.getElementById('jf-cron').value = cron;
+  document.getElementById('sched-display').textContent = cronDesc(cron);
+  showNextFires(cron);
+}
+
+function showNextFires(cron) {
+  const el = document.getElementById('sched-next-fires');
+  if (!el || !cron) { if(el) el.textContent=''; return; }
+  const times = cronFireTimes(cron, false);
+  if (!times.length) { el.textContent=''; return; }
+  const fireStr = times.slice(0,5).map(t=>{const h=Math.floor(t/60),m=t%60;return`${h===0?12:h>12?h-12:h}:${String(m).padStart(2,'0')} ${h<12?'AM':'PM'}`;}).join(' \u00B7 ');
+  el.textContent = `Fires at: ${fireStr}`;
+}
+
+function cronInput() {
+  const v = document.getElementById('jf-cron').value;
+  pickedCron = v;
+  document.getElementById('jf-cron-val').value = v;
+  document.getElementById('cron-hint').textContent = cronDesc(v);
+  document.getElementById('sched-display').textContent = cronDesc(v) || v;
+  showNextFires(v);
+}
+
+function toggleAdv() { document.getElementById('cron-adv').classList.toggle('hidden'); }
+
+function cloneJob() {
+  const j = jobs.find(x=>String(x.id)===String(editingJobId));
+  if (!j) return;
+  closeModal('job-modal');
+  setTimeout(() => {
+    openAddJob(personOf(j), agentOf(j));
+    setTimeout(() => {
+      document.getElementById('jf-name').value = (j.name||'')+' (copy)';
+      document.getElementById('jf-prompt').value = j.prompt||'';
+    }, 50);
+  }, 200);
+}
+
+async function saveJob() {
+  const name = document.getElementById('jf-name').value.trim();
+  const pid = document.getElementById('jf-person').value;
+  const cron = (document.getElementById('jf-cron-val').value||pickedCron||document.getElementById('jf-cron').value).trim();
+  const prompt = document.getElementById('jf-prompt').value.trim();
+  if(!name){toast('Please enter a name','error');return;}
+  if(!cron){toast('Please set a schedule','error');return;}
+  if(!prompt){toast('Please describe what Jarvis should do','error');return;}
+  const slug = name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+  const body = {prompt, schedule_type:'cron', schedule_value:cron, enabled:true, group_folder:'main', chat_jid:'tg:1449522448'};
+  if(!editingJobId) body.name = slug;
+  try {
+    if(editingJobId) await apiFetch('PATCH',`/jobs/${editingJobId}`,body);
+    else await apiFetch('POST','/jobs',body);
+    toast(editingJobId?'Saved':'Created','success');
+    closeModal('job-modal'); await fetchAll(); renderCurrentView();
+  } catch(e) { toast('Save failed','error'); }
+}
+
+/* ================================================================
+   AGENT TYPE MODAL
+================================================================ */
+let atModalCatFilter = 'all';
+function filterAtGrid(q) {
+  atModalSearchQ = q;
+  renderInspGrid(atModalCatFilter, q);
+}
+let atModalSearchQ = '';
+function setAtCatFilter(catId) {
+  atModalCatFilter = catId;
+  document.querySelectorAll('.at-modal-cat-pill').forEach(b => b.classList.toggle('picked', b.dataset.cat === catId));
+  renderInspGrid(catId, atModalSearchQ);
+}
+function openAddAgent(pid, preselectedType) {
+  addingForPerson = pid; selectedAgentType = null; atModalCatFilter = 'all';
+  const atSearch = document.getElementById('at-search');
+  if (atSearch) atSearch.value = '';
+  const p = family.find(f=>f.id===pid);
+  document.getElementById('am-title').textContent = `Add an Agent${p?' for '+p.name:''}`;
+
+  document.getElementById('at-cat-pills').innerHTML =
+    INSP_CATEGORIES.map(c=>`<button class="sched-pill px-3 py-1.5 rounded-full text-xs font-semibold at-modal-cat-pill ${c.id==='all'?'picked':''}" data-cat="${c.id}" onclick="setAtCatFilter('${c.id}')">${c.icon} ${c.name}</button>`).join('');
+
+  renderInspGrid('all', '');
+  openModal('agent-modal');
+}
+
+function renderInspGrid(catFilter, searchQ) {
+  let items = AGENT_INSPIRATION;
+  if (catFilter && catFilter !== 'all') items = items.filter(i=>i.cat===catFilter);
+  if (searchQ) {
+    const q = searchQ.toLowerCase();
+    items = items.filter(i=>i.name.toLowerCase().includes(q)||i.tagline.toLowerCase().includes(q)||i.prompt.toLowerCase().includes(q));
+  }
+  if (!items.length) {
+    document.getElementById('at-grid').innerHTML = `<div class="col-span-3 py-12 text-center text-on-surface-variant">No ideas match your search.</div>`;
+    return;
+  }
+  document.getElementById('at-grid').innerHTML = items.map(insp => {
+    const isCustom = insp.id === 'i_custom';
+    return `<div class="atcard group rounded-xl p-4 cursor-pointer transition-all flex flex-col gap-2 ${isCustom ? 'add-card' : 'bg-surface-container-high hover:bg-surface-container-highest'}" data-name="${insp.name.toLowerCase()}" data-desc="${insp.tagline.toLowerCase()}" onclick="useInspiration('${insp.id}')">
+      <div class="flex items-start gap-3">
+        <div class="text-2xl flex-shrink-0 mt-0.5">${insp.icon}</div>
+        <div class="min-w-0 flex-1">
+          <div class="font-headline font-bold text-sm text-on-surface leading-tight">${insp.name}</div>
+          <div class="text-xs text-on-surface-variant mt-0.5 leading-snug">${insp.tagline}</div>
+        </div>
+      </div>
+      ${insp.prompt && !isCustom ? `<div class="text-xs text-on-surface-variant/70 leading-relaxed line-clamp-2 mt-1">${insp.prompt.replace(/\{name\}/g,'them').substring(0,90)}…</div>` : ''}
+      <div class="flex items-center justify-between mt-auto pt-1">
+        ${insp.schedule ? `<span class="text-xs text-primary/60 font-mono">${insp.schedule}</span>` : '<span></span>'}
+        <span class="text-xs font-semibold text-primary opacity-0 group-hover:opacity-100 transition-opacity">Use this →</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function useInspiration(id) {
+  const insp = AGENT_INSPIRATION.find(i=>i.id===id);
+  if (!insp) return;
+  closeModal('agent-modal');
+  setTimeout(() => {
+    openAddJob(addingForPerson, insp.typeId);
+    const p = family.find(f=>f.id===addingForPerson);
+    if (insp.name && insp.id !== 'i_custom') {
+      document.getElementById('jf-name').value = p ? `${p.name}: ${insp.name}` : insp.name;
+    }
+    if (insp.prompt) {
+      const prompt = insp.prompt
+        .replace(/\{name\}/g, p?.name||'them')
+        .replace(/\{channel\}/g, p?.preferred_channel||'WhatsApp');
+      document.getElementById('jf-prompt').value = prompt;
+      document.getElementById('jf-prompt-chars').textContent = prompt.length + ' chars';
+    }
+  }, 200);
+}
+function selectAt(id) {
+  selectedAgentType = id;
+  document.querySelectorAll('.atcard').forEach(c=>c.classList.remove('ring-2','ring-primary'));
+  const el = document.querySelector(`.atcard[data-name="${(AGENT_TYPES.find(a=>a.id===id)?.name||'').toLowerCase()}"]`);
+  if (el) el.classList.add('ring-2','ring-primary');
+  document.getElementById('am-next').disabled = false;
+}
+function agentNext() {
+  if (!selectedAgentType) return;
+  closeModal('agent-modal');
+  setTimeout(()=>openAddJob(addingForPerson, selectedAgentType), 200);
+}
+
+/* ================================================================
+   EDIT PERSON MODAL
+================================================================ */
+let editPersonTier = 6;
+function openEditPerson(pid) {
+  const p = family.find(f=>f.id===pid); if(!p) return;
+  editPersonTier = p.contact_tier;
+  document.getElementById('pm-id').value = pid;
+  document.getElementById('pm-title').textContent = `Edit Profile \u2014 ${p.name}`;
+  document.getElementById('pm-name').value = p.name||'';
+  document.getElementById('pm-rel').value = p.relation||'Other';
+  document.getElementById('pm-phone').value = p.phone||'';
+  document.getElementById('pm-whatsapp').value = p.whatsapp||'';
+  document.getElementById('pm-email').value = p.email||'';
+  document.getElementById('pm-telegram').value = p.telegram||'';
+  document.getElementById('pm-quiet-start').value = p.quiet_hours?.start||'22:00';
+  document.getElementById('pm-quiet-end').value = p.quiet_hours?.end||'07:00';
+  document.getElementById('pm-notes').value = p.notes||'';
+  const photoInput = document.getElementById('pm-photo');
+  const photoPreview = document.getElementById('pm-photo-preview');
+  if (photoInput) photoInput.value = p.photo||'';
+  if (photoPreview) {
+    photoPreview.innerHTML = p.photo
+      ? `<img src="${p.photo}" class="w-full h-full object-cover" onerror="this.parentElement.innerHTML='<span class=\\'material-symbols-outlined text-lg\\'>person</span>'">`
+      : '<span class="material-symbols-outlined text-lg">person</span>';
+  }
+  // Live preview on photo input change
+  if (photoInput) photoInput.oninput = () => {
+    const url = photoInput.value.trim();
+    photoPreview.innerHTML = url
+      ? `<img src="${url}" class="w-full h-full object-cover" onerror="this.parentElement.innerHTML='<span class=\\'material-symbols-outlined text-lg\\'>broken_image</span>'">`
+      : '<span class="material-symbols-outlined text-lg">person</span>';
+  };
+  document.getElementById('pm-tiers').innerHTML = TIERS.map(t =>
+    `<button type="button" class="tier-btn px-3 py-1.5 rounded-lg text-xs font-semibold ${p.contact_tier===t.t?'active':''}" style="--tc:${t.color};background:${p.contact_tier===t.t?t.color+'33':'transparent'};color:${t.color};border:1px solid ${p.contact_tier===t.t?t.color:t.color+'44'}" data-tier="${t.t}" onclick="pickEditTier(${t.t})" title="${t.desc}">
+      ${t.icon} ${t.name}
+    </button>`
+  ).join('');
+  openModal('person-modal');
+}
+function pickEditTier(t) {
+  editPersonTier = t;
+  document.querySelectorAll('#pm-tiers .tier-btn').forEach(b => {
+    const bt = +b.dataset.tier;
+    const tier = TIERS.find(x=>x.t===bt);
+    b.classList.toggle('active', bt===t);
+    b.style.background = bt===t ? tier.color+'33' : 'transparent';
+    b.style.borderColor = bt===t ? tier.color : tier.color+'44';
+  });
+}
+async function savePerson() {
+  const pid = document.getElementById('pm-id').value;
+  const updates = {
+    name: document.getElementById('pm-name').value.trim(),
+    relation: document.getElementById('pm-rel').value,
+    phone: document.getElementById('pm-phone').value.trim(),
+    whatsapp: document.getElementById('pm-whatsapp').value.trim(),
+    email: document.getElementById('pm-email').value.trim(),
+    telegram: document.getElementById('pm-telegram').value.trim(),
+    quiet_hours: { start: document.getElementById('pm-quiet-start').value, end: document.getElementById('pm-quiet-end').value },
+    notes: document.getElementById('pm-notes').value.trim(),
+    contact_tier: editPersonTier,
+    photo: document.getElementById('pm-photo')?.value.trim() || '',
+  };
+  const p = family.find(f=>f.id===pid);
+  if(p) Object.assign(p, updates);
+  try { await apiFetch('PUT',`/family/${pid}`,updates); toast('Profile saved','success'); }
+  catch { toast('Saved locally','success'); }
+  closeModal('person-modal');
+  renderApp();
+}
+
+/* ================================================================
+   ADD PERSON WIZARD
+================================================================ */
+function openAddPerson() {
+  apStep = 1;
+  apData = { name:'', relation:'Friend', emoji:'\uD83D\uDC64', color:'#58a6ff', phone:'', whatsapp:'', email:'', telegram:'', preferred_channel:'whatsapp', quiet_start:'22:00', quiet_end:'07:00', tier:6, personality:'warm_friend', language:'he' };
+  document.getElementById('ap-name').value = '';
+  document.getElementById('ap-phone').value = '';
+  document.getElementById('ap-whatsapp').value = '';
+  document.getElementById('ap-email').value = '';
+  document.getElementById('ap-telegram').value = '';
+  apRenderStep1Static();
+  apRenderStep3Static();
+  apGoStep(1);
+  openModal('addperson-modal');
+  setTimeout(()=>document.getElementById('ap-name')?.focus(),100);
+}
+function apRenderStep1Static() {
+  document.getElementById('ap-rel-grid').innerHTML = AP_RELATIONS.map(r =>
+    `<button type="button" class="px-3 py-1.5 rounded-lg text-xs font-semibold ${r===apData.relation?'bg-primary/20 text-primary':'bg-surface-container-high text-on-surface-variant'} hover:opacity-80" onclick="apPickRelation('${r}',this)">${r}</button>`
+  ).join('');
+  document.getElementById('ap-emoji-grid').innerHTML = AP_EMOJIS.map(e =>
+    `<button type="button" class="w-9 h-9 rounded-lg flex items-center justify-center text-lg ${e===apData.emoji?'bg-primary/20 ring-2 ring-primary':'bg-surface-container-high'} hover:opacity-80" onclick="apPickEmoji('${e}',this)">${e}</button>`
+  ).join('');
+  document.getElementById('ap-color-row').innerHTML = AP_COLORS.map(c =>
+    `<div class="w-8 h-8 rounded-full cursor-pointer ${c===apData.color?'ring-2 ring-white ring-offset-2 ring-offset-surface':''}" style="background:${c}" onclick="apPickColor('${c}',this)"></div>`
+  ).join('');
+}
+function apRenderStep3Static() {
+  document.getElementById('ap-tiers').innerHTML = TIERS.map(t =>
+    `<button type="button" class="tier-btn px-3 py-1.5 rounded-lg text-xs font-semibold ${t.t===apData.tier?'active':''}" style="--tc:${t.color};background:${t.t===apData.tier?t.color+'33':'transparent'};color:${t.color};border:1px solid ${t.t===apData.tier?t.color:t.color+'44'}" data-tier="${t.t}" onclick="apPickTier(${t.t})" title="${t.desc}">${t.icon} ${t.name}</button>`
+  ).join('');
+  document.getElementById('ap-presets').innerHTML = PERSONALITIES.map(pr =>
+    `<div class="preset-card ${pr.id===apData.personality?'active':''} bg-surface-container-high rounded-xl p-3 text-center" onclick="apPickPreset('${pr.id}',this)">
+      <div class="text-2xl mb-1">${pr.icon}</div>
+      <div class="text-sm font-semibold text-on-surface">${pr.name}</div>
+      <div class="text-xs text-on-surface-variant mt-0.5">${pr.desc}</div>
+    </div>`
+  ).join('');
+  document.getElementById('ap-lang-row').innerHTML = AP_LANGS.map(l =>
+    `<button type="button" class="px-3 py-1.5 rounded-lg text-xs font-semibold ${l.id===apData.language?'bg-primary/20 text-primary':'bg-surface-container-high text-on-surface-variant'} hover:opacity-80" onclick="apPickLang('${l.id}',this)">${l.label}</button>`
+  ).join('');
+  document.getElementById('ap-channel-row').innerHTML = AP_CHANNELS.map(c =>
+    `<button type="button" class="px-3 py-1.5 rounded-lg text-xs font-semibold ${c.id===apData.preferred_channel?'bg-primary/20 text-primary':'bg-surface-container-high text-on-surface-variant'} hover:opacity-80" onclick="apPickChannel('${c.id}',this)">${c.icon} ${c.label}</button>`
+  ).join('');
+}
+function apGoStep(n) {
+  if (n > 1 && n > apStep + 1) return;
+  if (n > apStep && apStep === 1 && !apData.name) { toast('Please enter a name first','error'); return; }
+  apStep = n;
+  document.querySelectorAll('.ap-step').forEach((el, i) => {
+    el.classList.toggle('hidden', i+1 !== n);
+  });
+  for (let i = 1; i <= 4; i++) {
+    const dotEl = document.getElementById('apdot-'+i);
+    if (!dotEl) continue;
+    const circle = dotEl.querySelector('div:first-child');
+    const lbl = dotEl.querySelector('div:last-child');
+    if (i < n) { circle.className='w-8 h-8 rounded-full bg-secondary text-on-secondary flex items-center justify-center text-sm font-bold'; lbl.className='text-xs mt-1 text-secondary'; }
+    else if (i === n) { circle.className='w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center text-sm font-bold'; lbl.className='text-xs mt-1 text-primary'; }
+    else { circle.className='w-8 h-8 rounded-full bg-surface-container-high text-on-surface-variant flex items-center justify-center text-sm font-bold'; lbl.className='text-xs mt-1 text-on-surface-variant'; }
+    const line = document.getElementById('apline-'+i);
+    if (line) line.className = `w-8 h-0.5 ap-sline ${i<n?'bg-secondary':'bg-surface-container-high'}`;
+  }
+  document.getElementById('ap-back-btn').classList.toggle('hidden', n <= 1);
+  const nextBtn = document.getElementById('ap-next-btn');
+  if (n === 4) { nextBtn.textContent = 'Add to Family'; nextBtn.onclick = saveNewPerson; }
+  else { nextBtn.textContent = 'Next'; nextBtn.onclick = apNext; }
+  if (n === 2) apRenderStep3Static();
+  if (n === 4) apRenderPreview();
+  const titles = ['Add a Family Member','How to Reach Them','Permissions & Personality','Preview'];
+  document.getElementById('ap-modal-title').textContent = titles[n-1];
+}
+function apNext() { if(apStep===1&&!apData.name){toast('Name required','error');return;} apGoStep(apStep+1); }
+function apBack() { if(apStep>1) apGoStep(apStep-1); }
+function apPickRelation(r,el) { apData.relation=r; document.querySelectorAll('#ap-rel-grid button').forEach(b=>{b.className=b.textContent.trim()===r?'px-3 py-1.5 rounded-lg text-xs font-semibold bg-primary/20 text-primary':'px-3 py-1.5 rounded-lg text-xs font-semibold bg-surface-container-high text-on-surface-variant hover:opacity-80';}); }
+function apPickEmoji(e,el) { apData.emoji=e; document.querySelectorAll('#ap-emoji-grid button').forEach(b=>{b.classList.remove('bg-primary/20','ring-2','ring-primary');b.classList.add('bg-surface-container-high');}); el.classList.remove('bg-surface-container-high'); el.classList.add('bg-primary/20','ring-2','ring-primary'); }
+function apPickColor(c,el) { apData.color=c; document.querySelectorAll('#ap-color-row div').forEach(b=>{b.classList.remove('ring-2','ring-white','ring-offset-2','ring-offset-surface');}); el.classList.add('ring-2','ring-white','ring-offset-2','ring-offset-surface'); }
+function apPhoneInput(v) { apData.phone=v.trim(); const wa=document.getElementById('ap-whatsapp'); if(wa&&!wa.value){wa.value=v;apData.whatsapp=v.trim();} }
+function apPickChannel(c,el) { apData.preferred_channel=c; document.querySelectorAll('#ap-channel-row button').forEach(b=>{b.className=b.textContent.trim().toLowerCase().includes(c)?'px-3 py-1.5 rounded-lg text-xs font-semibold bg-primary/20 text-primary':'px-3 py-1.5 rounded-lg text-xs font-semibold bg-surface-container-high text-on-surface-variant hover:opacity-80';}); }
+function apPickTier(t) {
+  apData.tier=t;
+  document.querySelectorAll('#ap-tiers .tier-btn').forEach(b=>{
+    const bt=+b.dataset.tier;const tier=TIERS.find(x=>x.t===bt);
+    b.classList.toggle('active',bt===t);
+    b.style.background=bt===t?tier.color+'33':'transparent';
+    b.style.borderColor=bt===t?tier.color:tier.color+'44';
+  });
+  const warn=document.getElementById('ap-blocked-warn');
+  if(warn) warn.classList.toggle('hidden',t!==0);
+}
+function apPickPreset(id,el) { apData.personality=id; document.querySelectorAll('#ap-presets .preset-card').forEach(c=>c.classList.remove('active')); el.classList.add('active'); }
+function apPickLang(l,el) { apData.language=l; document.querySelectorAll('#ap-lang-row button').forEach(b=>{b.className=b.textContent.trim().toLowerCase().includes(l==='en'?'english':l==='he'?'hebrew':'both')?'px-3 py-1.5 rounded-lg text-xs font-semibold bg-primary/20 text-primary':'px-3 py-1.5 rounded-lg text-xs font-semibold bg-surface-container-high text-on-surface-variant hover:opacity-80';}); }
+function apRenderPreview() {
+  const tier = TIERS.find(t=>t.t===apData.tier)||TIERS[6];
+  const preset = PERSONALITIES.find(p=>p.id===apData.personality)||PERSONALITIES[0];
+  const contacts = [apData.phone?'Phone: '+apData.phone:'',apData.whatsapp?'WhatsApp: '+apData.whatsapp:'',apData.email?'Email: '+apData.email:'',apData.telegram?'Telegram: '+apData.telegram:''].filter(Boolean);
+  document.getElementById('ap-preview-card').innerHTML = `
+    <div class="avatar-ring w-16 h-16 mx-auto mb-3"><div class="avatar-inner w-full h-full text-3xl">${apData.emoji}</div></div>
+    <div class="font-headline text-xl font-bold text-on-surface">${apData.name||'New Person'}</div>
+    <div class="text-sm text-on-surface-variant mb-3">${apData.relation}</div>
+    <div class="flex flex-wrap justify-center gap-2 mb-3">
+      <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold" style="background:${tier.color}33;color:${tier.color}">${tier.icon} ${tier.name}</span>
+      <span class="chip-info px-2.5 py-0.5 rounded-full text-xs font-semibold">${preset.icon} ${preset.name}</span>
+      <span class="chip-muted px-2.5 py-0.5 rounded-full text-xs font-semibold">${apData.language==='en'?'\uD83C\uDDFA\uD83C\uDDF8 English':apData.language==='he'?'\uD83C\uDDEE\uD83C\uDDF1 Hebrew':'Both'}</span>
+    </div>
+    ${contacts.length ? `<div class="text-xs text-on-surface-variant space-y-1">${contacts.map(c=>'<div>'+c+'</div>').join('')}</div>` : '<div class="text-xs text-on-surface-variant">No contact details added</div>'}`;
+}
+async function saveNewPerson() {
+  if (!apData.name) { toast('Name is required','error'); return; }
+  const np = {
+    tenant_id: tenant.tenant_id||'benisrael',
+    id: apData.name.toLowerCase().replace(/[^a-z0-9]/g,'_'),
+    name: apData.name, relation: apData.relation, emoji: apData.emoji, color: apData.color,
+    contact_tier: apData.tier, phone: apData.phone, whatsapp: apData.whatsapp, email: apData.email,
+    telegram: apData.telegram, preferred_channel: apData.preferred_channel,
+    quiet_hours: {start:apData.quiet_start||'22:00',end:apData.quiet_end||'07:00'},
+    language: apData.language, jarvis_personality: apData.personality, jarvis_personality_custom: '', notes: '',
+    created_at: new Date().toISOString(), created_by: currentUser||'portal',
+  };
+  const btn = document.getElementById('ap-next-btn');
+  if(btn){btn.disabled=true;btn.textContent='Adding...';}
+  try {
+    const created = await apiFetch('POST','/family',np);
+    family.push(created||np);
+    toast(`${np.name} added to the family`,'success');
+    closeModal('addperson-modal');
+    switchTo(np.id);
+  } catch(e) {
+    toast(e.message||'Failed to add person','error');
+    if(btn){btn.disabled=false;btn.textContent='Add to Family';}
+  }
+}
+
+/* ================================================================
+   VACATION
+================================================================ */
+function openVacation(pid) {
+  vacPersonId = pid;
+  const p = family.find(f=>f.id===pid);
+  document.getElementById('vac-title').textContent = `Vacation Mode \u2014 ${p?.name||pid}`;
+  document.getElementById('vac-desc').textContent = `Pause ${p?.name||pid}'s automations. Pick a return date:`;
+  const def = new Date(); def.setDate(def.getDate()+7);
+  document.getElementById('vac-date').value = def.toISOString().split('T')[0];
+  openModal('vacation-modal');
+}
+async function saveVacation() {
+  if (!vacPersonId) return;
+  const date = document.getElementById('vac-date').value;
+  if (!date) { toast('Pick a return date','error'); return; }
+  const p = family.find(f=>f.id===vacPersonId);
+  if (p) {
+    p.vacation_until = new Date(date+'T00:00:00Z').toISOString();
+    try { await apiFetch('PUT',`/family/${vacPersonId}`,{vacation_until:p.vacation_until}); } catch {}
+  }
+  toast(`${p?.name||vacPersonId} is on vacation until ${date}`,'success');
+  closeModal('vacation-modal');
+  renderApp();
+}
+async function endVacation(pid) {
+  const p = family.find(f=>f.id===pid);
+  if (p) { p.vacation_until=null; try{await apiFetch('PUT',`/family/${pid}`,{vacation_until:null});}catch{} }
+  toast(`${p?.name||pid}'s vacation ended`,'success');
+  renderApp();
+}
+
+/* ================================================================
+   MODAL / TOAST / SEARCH
+================================================================ */
+function openModal(id) { document.getElementById(id).classList.add('open'); document.body.style.overflow='hidden'; }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); document.body.style.overflow=''; }
+function bgClose(id,e) { if(e.target===document.getElementById(id)) closeModal(id); }
+
+function toast(msg, type='success') {
+  const el = document.createElement('div');
+  el.className = `toast-item ${type==='success'?'bg-secondary/20 text-secondary':type==='error'?'bg-error/20 text-error':'bg-tertiary/20 text-tertiary'}`;
+  el.textContent = msg;
+  document.getElementById('toasts').appendChild(el);
+  setTimeout(()=>el.remove(), 3500);
+}
+
+function openSearch() {
+  document.getElementById('search-overlay').classList.remove('hidden');
+  document.getElementById('search-input').value = '';
+  document.getElementById('search-results').innerHTML = '';
+  setTimeout(()=>document.getElementById('search-input').focus(), 100);
+}
+function closeSearch() { document.getElementById('search-overlay').classList.add('hidden'); }
+function onSearchInput() { clearTimeout(searchDebounce); searchDebounce = setTimeout(doSearch, 150); }
+function doSearch() {
+  const q = document.getElementById('search-input').value.toLowerCase().trim();
+  if (!q) { document.getElementById('search-results').innerHTML = ''; return; }
+  const results = [];
+
+  const people = family.filter(p => p.name.toLowerCase().includes(q)||p.relation.toLowerCase().includes(q));
+  if (people.length) {
+    results.push(`<div class="px-4 py-2"><div class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1">People</div>${people.map(p=>
+      `<div class="flex items-center gap-3 py-2 px-2 rounded-lg hover:bg-surface-container-high cursor-pointer" onclick="closeSearch();switchTo('${p.id}')">
+        <span class="text-lg">${p.emoji}</span>
+        <div><div class="text-sm font-medium text-on-surface">${p.name}</div><div class="text-xs text-on-surface-variant">${p.relation}</div></div>
+      </div>`).join('')}</div>`);
+  }
+
+  const matchedJobs = jobs.filter(j => {
+    const name = (j.name||'').toLowerCase();
+    const prompt = (j.prompt||'').toLowerCase();
+    return name.includes(q) || prompt.includes(q);
+  });
+  if (matchedJobs.length) {
+    results.push(`<div class="px-4 py-2"><div class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1">Jobs (${matchedJobs.length})</div>${matchedJobs.slice(0,8).map(j=>{
+      const pid=personOf(j);const p=family.find(f=>f.id===pid);const at=AGENT_TYPES.find(a=>a.id===agentOf(j));
+      return `<div class="flex items-center gap-3 py-2 px-2 rounded-lg hover:bg-surface-container-high cursor-pointer" onclick="closeSearch();openEditJob('${j.id}')">
+        <span style="color:${at?.color||'#8b919d'}">${at?.icon||'\u2699\uFE0F'}</span>
+        <div class="flex-1 min-w-0"><div class="text-sm font-medium text-on-surface truncate">${labelOf(j.name)}</div><div class="text-xs text-on-surface-variant">${cronDesc(j.schedule_value||'')} \u00B7 ${p?.name||'System'}</div></div>
+        <span class="w-2 h-2 rounded-full ${j.status==='failed'?'bg-error':isOn(j)?'bg-secondary':'bg-outline'}"></span>
+      </div>`;}).join('')}</div>`);
+  }
+
+  if (!results.length) {
+    results.push(`<div class="text-center py-8 text-on-surface-variant text-sm">No results for "${q}"</div>`);
+  }
+  document.getElementById('search-results').innerHTML = results.join('');
+}
+
+function showShortcuts() {
+  const shortcuts = [
+    ['Ctrl+K','Search'],['N','Add agent'],['T','Timeline'],['A','Activity'],['H','Home/Family'],['L','System Log'],['R','Run all (active person)'],['?','Shortcuts'],['Esc','Close modal'],
+  ];
+  document.getElementById('qa-title').textContent = 'Keyboard Shortcuts';
+  document.getElementById('qa-body').innerHTML = `<div class="space-y-2">${shortcuts.map(([k,d])=>
+    `<div class="flex items-center gap-3"><kbd class="px-2 py-1 rounded bg-surface-container-high text-on-surface-variant text-xs font-mono min-w-[60px] text-center">${k}</kbd><span class="text-sm text-on-surface">${d}</span></div>`
+  ).join('')}</div>`;
+  openModal('qa-modal');
+}
+
+// Keyboard shortcuts
+document.addEventListener('keydown', e => {
+  if ((e.metaKey||e.ctrlKey) && e.key==='k') { e.preventDefault(); openSearch(); return; }
+  if ((e.metaKey||e.ctrlKey) && e.key==='Enter') {
+    if (document.getElementById('job-modal')?.classList.contains('open')) { e.preventDefault(); saveJob(); return; }
+  }
+  if (e.key === 'Escape') {
+    if (!document.getElementById('search-overlay').classList.contains('hidden')) { closeSearch(); return; }
+    const open = document.querySelector('.modal-overlay.open');
+    if (open) { closeModal(open.id); return; }
+  }
+  const tag = document.activeElement?.tagName?.toLowerCase();
+  const typing = tag==='input'||tag==='textarea'||tag==='select';
+  if (!typing && !e.metaKey && !e.ctrlKey && !e.altKey) {
+    if (e.key==='n') { const pid=activePerson||'rotem'; openAddAgent(pid); return; }
+    if (e.key==='?') { showShortcuts(); return; }
+    if (e.key==='t') { switchTo('timeline'); return; }
+    if (e.key==='a') { switchTo('activity'); return; }
+    if (e.key==='h') { goHome(); return; }
+    if (e.key==='l') { switchTo('syslog'); return; }
+    if (e.key==='r' && activePerson) { qaRunAll(activePerson); return; }
+  }
+});
+
+/* ================================================================
+   INIT
+================================================================ */
+async function init() {
+  // Load category states
+  try { categoryStates = JSON.parse(sessionStorage.getItem('jp_cats')||'{}'); } catch {}
+
+  await fetchAll();
+  checkMp();
+  renderLanding();
+
+  const lastPerson = sessionStorage.getItem('jp_person');
+  if (lastPerson && family.find(p=>p.id===lastPerson)) {
+    enterPortal(lastPerson);
+  }
+
+  // Auto-refresh every 60s
+  autoRefreshInterval = setInterval(async () => {
+    await fetchAll();
+    if (activeView !== 'landing') renderCurrentView();
+    renderSidebar();
+  }, 60000);
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
