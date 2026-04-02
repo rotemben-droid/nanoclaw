@@ -10,6 +10,7 @@ import makeWASocket, {
   makeCacheableSignalKeyStore,
   useMultiFileAuthState,
 } from '@whiskeysockets/baileys';
+import pino from 'pino';
 
 import {
   ASSISTANT_HAS_OWN_NUMBER,
@@ -80,14 +81,15 @@ export class WhatsAppChannel implements Channel {
         this.sock.ev as unknown as import('events').EventEmitter
       ).removeAllListeners();
     }
+    const baileysLogger = pino({ level: 'warn' });
     this.sock = makeWASocket({
       version,
       auth: {
         creds: state.creds,
-        keys: makeCacheableSignalKeyStore(state.keys, logger),
+        keys: makeCacheableSignalKeyStore(state.keys, baileysLogger),
       },
       printQRInTerminal: false,
-      logger,
+      logger: baileysLogger,
       browser: Browsers.macOS('Chrome'),
     });
 
