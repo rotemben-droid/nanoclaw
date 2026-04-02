@@ -25,6 +25,7 @@ import {
   updateChatName,
 } from '../db.js';
 import { logger } from '../logger.js';
+import { registerChannel, ChannelOpts } from './registry.js';
 import {
   Channel,
   OnInboundMessage,
@@ -484,3 +485,5 @@ export class WhatsAppChannel implements Channel {
     }
   }
 }
+
+registerChannel('whatsapp', (opts: ChannelOpts) => new WhatsAppChannel(opts));
